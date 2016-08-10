@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+
+  "name": "Outbound rules",
+  "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
+  "version": "1.0",
+
+  
+  "browser_action": {
+    "default_icon": "logo.png"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ]
+}
