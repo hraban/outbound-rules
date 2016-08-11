@@ -31,8 +31,9 @@ function matchHost(teststr, host) {
 }
 
 function getHost(url) {
-    // TODO: Code smell. Is there a proper url parsing lib?
-    return url.match(/^[\w-]+:\/{2,}\[?([\w\.:-]+)\]?(?::[0-9]*)?/)[1];
+    const a = document.createElement('A');
+    a.href = url;
+    return a.hostname;
 }
 
 // This dance is necessary because onBeforeSendHeaders doesn't provide access to
