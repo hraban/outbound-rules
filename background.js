@@ -1,4 +1,4 @@
-// Copyright © 2016 Ravelin Technology Limited
+// Copyright © 2016 Authors (see AUTHORS file)
 //
 // Licensed under the AGPL. See the LICENSE file for more info.
 
