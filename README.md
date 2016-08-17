@@ -37,6 +37,17 @@ sequentially (before the request is made). The first matching rule will be used
 as the action to take for a request. If no rule matches, the default is to allow
 the request.
 
+### Inspired by NoScript's ABE
+
+The syntax was inspired by NoScript's ABE: https://noscript.net/abe/. ABE is the
+Application Boundaries Enforcer, and on the surface it's the perfect fit for
+what Outbound-Rules tries to solve. Unfortunately, as it turns out, ABE is
+mostly about defining what _incoming_ requests are legal for your server. It
+doesn't really let you what _outgoing_ requests are legal.
+
+Still, in trying not to reinvent the wheel, I have tried to imitate their style
+and syntax as much as reasonable.
+
 ## Details
 
 This system protects you against an attack where some malicious javascript finds
