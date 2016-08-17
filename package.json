@@ -2,13 +2,13 @@
   "name": "outbound-rules",
   "version": "1.0.0",
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
-  "main": "background.js",
   "scripts": {
-    "test": "tsc && jest",
-    "build": "tsc"
+    "test": "npm run build && jest",
+    "build": "tsc",
+    "release": "npm run build && rollup build/chrome-background.js > background.js"
   },
   "jest": {
-    "testRegex": "tests/.*\\.js$"
+    "testRegex": "build/tests/.*\\.js$"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "babel-jest": "=14.1.0",
     "babel-preset-es2015": "=6.13.2",
     "jest-cli": "=14.1.0",
-    "typescript": "=1.8.10"
+    "rollup": "=0.34.10",
+    "typescript": "=2.0.0"
   }
 }

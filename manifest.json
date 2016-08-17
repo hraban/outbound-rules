@@ -10,7 +10,9 @@
     "default_icon": "logo.png"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "permissions": [
     "webRequest",

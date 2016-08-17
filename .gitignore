@@ -7,8 +7,9 @@ npm-debug.log
 bower_components/
 
 # Typescript compilation output
-/*.js
-/tests/*.js
+/build/
+
+background.js
 
 # Just noise
 *~
