@@ -13,3 +13,4 @@ bower_components/
 # Just noise
 *~
 *.orig
+.DS_Store
