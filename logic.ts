@@ -68,6 +68,22 @@ interface Rule extends ParsedRule {
     matcher: PatternMatcher
 }
 
+function trim(x: string) { return x.trim() }
+
+function parseOneAux(action: string, from_: string) {
+    return {
+        // err on the side of deny; any typos or otherwise unknown actions become "deny"
+        allow: action.trim().toLowerCase() === "allow",
+        from: from_.split(/\s/).map(trim).filter(Boolean),
+    };
+}
+
+export function parseOne(ruletext: string): ParsedRule {
+    let rule = parseOneAux.apply(null, ruletext.split(':'));
+    rule.text = ruletext;
+    return rule;
+}
+
 // < "Deny: SELF   , Allow    :  Foo Bar bas.sadf.sadf.f,Deny:ALL"
 //
 // > [
@@ -88,19 +104,7 @@ interface Rule extends ParsedRule {
 // >   }
 // > ]
 export function parse(outheader: string): ParsedRule[] {
-    const trim = (x: string) => x.trim();
-    function sub(action: string, from_: string) {
-        return {
-            // err on the side of deny; any typos or otherwise unknown actions become "deny"
-            allow: action.trim().toLowerCase() === "allow",
-            from: from_.split(/\s/).map(trim).filter(Boolean),
-        };
-    }
-    return outheader.split(',').map(trim).filter(Boolean).map(function (subrule): ParsedRule {
-        let rule = sub.apply(null, subrule.split(':'));
-        rule.text = subrule;
-        return rule;
-    });
+    return outheader.split(',').map(trim).filter(Boolean).map(parseOne);
 }
 
 export function onHeadersReceived(details) {

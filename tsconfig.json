@@ -11,6 +11,7 @@
     "typings/index.d.ts",
     "logic.ts",
     "__tests__/match-test.ts",
+    "__tests__/parse-test.ts",
     "background.ts"
   ]
 }
