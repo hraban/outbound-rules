@@ -4,7 +4,7 @@ To protect your page against XSS, specify which hosts the page is allowed to
 issue outgoing requests to. E.g.:
 
 ```
-Outbound-Rules: Allow: SELF code.jquery.com, Deny: ALL
+Outbound-Rules: Accept: SELF code.jquery.com, Deny: ALL
 ```
 
 will only allow requests to your own hostname and to code.jquery.com. Anything
@@ -20,7 +20,7 @@ rules  ::= <rule> ["," <rule>]*
 
 rule   ::= <action> ":" <from> [" " <from>]*
 
-action ::= "Deny" | "Allow"
+action ::= "Deny" | "Accept"
 
 from   ::= "ALL" | "SELF" | <hostname> | "." <hostname>
 ```
