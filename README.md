@@ -63,4 +63,25 @@ executed. Rather, it prevents it from ever "escaping" your host. This means that
 even though the script now has access to sensitive data, it cannot send it
 anywhere. At least not through the browser.
 
+## Build
 
+Install the necessary dependencies:
+
+```sh
+$ npm install
+```
+
+Run all tests:
+
+```sh
+$ npm test
+```
+
+Build the Chrome plugin:
+
+```sh
+$ npm run release
+```
+
+You can load the plugin from Chrome by visiting chrome://extensions, enabling
+"developer mode" and clicking "load unpackaged extension".
