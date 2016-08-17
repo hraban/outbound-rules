@@ -1,0 +1,199 @@
+// Copyright © 2016 Authors (see AUTHORS file)
+//
+// Licensed under the AGPL. See the LICENSE file for more info.
+
+
+// Filter outgoing requests based on the Outbound-Rules header received from
+// servers (if present).
+
+function matchDot(pattern: string, url: string) {
+    const host = getHost(url).toLowerCase();
+    if (host.length === pattern.length + 1) {
+        // same domain, remove the dot
+        return host.slice(1) === pattern;
+    }
+    // subdomain, make sure to include the dot!
+    return pattern.endsWith(host);
+}
+
+function isAbsolute(url: string): boolean {
+    return /^\w+:\/\//.test(url);
+}
+
+// Create a matcher function for this pattern.
+function matcher(pattern: string): (url: string) => boolean {
+    pattern = pattern.toLowerCase();
+
+    if (pattern === "ALL") {
+        return () => true;
+    }
+
+    if (pattern.startsWith(".")) {
+        return (url: string) => matchDot(pattern, url);
+    }
+
+    // exact match
+    return (url: string) => url.toLowerCase() === pattern;
+}
+
+function getHost(url: string): string {
+    const a = document.createElement('a');
+    a.href = url;
+    return a.hostname;
+}
+
+// This dance is necessary because onBeforeSendHeaders doesn't provide access to
+// the response context of the page that caused this request.
+var cache: {[id: string]: Rule[]} = {};
+// Keep track of fresh requests
+var fresh = {};
+
+// A pattern transformed to a function closure which applies the pattern to a
+// URL.
+interface PatternMatcher {
+    (url: string): boolean
+}
+
+interface ParsedRule {
+    allow: boolean,
+    from: string[],
+    text: string
+}
+
+interface Rule extends ParsedRule {
+    matcher: PatternMatcher
+}
+
+// < "Deny: SELF   , Allow    :  Foo Bar bas.sadf.sadf.f,Deny:ALL"
+//
+// > [
+// >   {
+// >     allow: false,
+// >     from: ["SELF"],
+// >     text: "Deny: SELF"
+// >   },
+// >   {
+// >     allow: true,
+// >     from: ["Foo", "Bar", "bas.sadf.sadf.f"],
+// >     text: "Allow    :  Foo Bar bas.sadf.sadf.f"
+// >   },
+// >   {
+// >     allow: false,
+// >     from: ["ALL"],
+// >     text: "Deny:ALL"
+// >   }
+// > ]
+function parse(outheader: string): ParsedRule[] {
+    const trim = (x: string) => x.trim();
+    function sub(action: string, from_: string) {
+        return {
+            // err on the side of deny; any typos or otherwise unknown actions become "deny"
+            allow: action.trim().toLowerCase() === "allow",
+            from: from_.split(/\s/).map(trim).filter(Boolean),
+        };
+    }
+    return outheader.split(',').map(trim).filter(Boolean).map(function (subrule): ParsedRule {
+        let rule = sub.apply(null, subrule.split(':'));
+        rule.text = subrule;
+        return rule;
+    });
+}
+
+function onHeadersReceived(details) {
+    var headers = details.responseHeaders;
+    if (headers === undefined) {
+        console.error("onHeadersReceived: No resopnse headers available");
+        return;
+    }
+
+    if (!(details.requestId in fresh)) {
+        return;
+    }
+    delete fresh[details.requestId];
+
+    var outboundRules;
+outer:
+    for (let header of headers) {
+        switch (header.name) {
+            case "Outbound-Rules":
+                outboundRules = header.value;
+                break outer;
+        }
+    }
+    console.log("onHeadersReceived: got outboundRules for", details.url, ":", outboundRules);
+    const originHost = getHost(details.url).toLowerCase();
+    const rules = <Rule[]>parse(outboundRules || "");
+    rules.forEach(function (rule) {
+        // The hosts this rule matches on
+        const from = rule.from.map(x => x === "SELF" ? originHost : x);
+        // Every function in this array must be applied to an incoming URL.
+        // If any of them returns true, the rule matches.
+        const matchers = from.map(matcher);
+        rule.matcher = url => matchers.some(match => match(url));
+    });
+    // TODO: indexed by tab id --- how does that play with frames?
+    cache[details.tabId] = rules;
+}
+
+function onBeforeSendHeaders(details) {
+    const headers = details.requestHeaders;
+    if (headers === undefined) {
+        console.error("onBeforeSendHeaders: No request headers available");
+        return;
+    }
+
+    // Use the headers to get the origin because tab.get is async
+    let origin: string, outboundRules: string;
+outer:
+    for (let header of headers) {
+        switch (header.name) {
+            case "Origin":
+            case "Referer":
+            case "Referrer":
+                origin = header.value;
+                break outer;
+        }
+    }
+
+    if (origin === undefined || origin === details.url) {
+        // Assume this is a fresh request
+        console.log("onBeforeSendHeaders: fresh page load: " + details.url);
+        fresh[details.requestId] = true;
+        return;
+    }
+
+    const outbound = cache[details.tabId];
+    if (outbound === undefined) {
+        console.error("onBeforeSendHeaders: no outbound rules cached for " + details.tabId + " (" + details.requestId + "): " + details.url);
+        return;
+    }
+
+    // TODO: schemas
+
+    const targetDomain = getHost(details.url);
+    const originDomain = getHost(origin);
+    let cancel: boolean;
+    let rule: Rule;
+    for (rule of outbound) {
+        if (rule.matcher(details.url)) {
+            cancel = !rule.allow;
+            break;
+        }
+    }
+
+    if (cancel !== undefined) {
+        const verb = cancel ? "Blocked" : "Allowed";
+        console.log(verb, "loading", details.url, "from", origin, "(rule: " + rule.text + ")");
+    }
+
+    // TODO: Don't use {cancel: ..} because a link visit will automatically reload
+    return { cancel: !!cancel };
+}
+
+var filter = {
+    urls: ["<all_urls>"],
+};
+
+declare var chrome: any;
+chrome.webRequest.onHeadersReceived.addListener(onHeadersReceived, filter, ["responseHeaders" /*,  "blocking"? would it be a race not to? */]);
+chrome.webRequest.onBeforeSendHeaders.addListener(onBeforeSendHeaders, filter, ["blocking", "requestHeaders"]);

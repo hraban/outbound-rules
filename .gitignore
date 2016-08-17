@@ -6,6 +6,8 @@ node_modules/
 npm-debug.log
 bower_components/
 
+background.js
+
 # Just noise
 *~
 *.orig

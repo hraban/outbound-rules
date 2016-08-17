@@ -1,0 +1,21 @@
+{
+  "name": "outbound-rules",
+  "version": "1.0.0",
+  "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hraban/chrome-outbound-rules.git"
+  },
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/hraban/chrome-outbound-rules/issues"
+  },
+  "homepage": "https://github.com/hraban/chrome-outbound-rules",
+  "devDependencies": {
+    "typescript": "=1.8.10"
+  }
+}
