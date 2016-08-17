@@ -109,7 +109,6 @@ outer:
                 break outer;
         }
     }
-    console.log("onHeadersReceived: got outboundRules for", details.url, ":", outboundRules);
     const originHost = getHost(details.url).toLowerCase();
     const rules = <Rule[]>parse(outboundRules || "");
     rules.forEach(function (rule) {
@@ -145,8 +144,6 @@ outer:
     }
 
     if (origin === undefined || origin === details.url) {
-        // Assume this is a fresh request
-        console.log("onBeforeSendHeaders: fresh page load: " + details.url);
         fresh[details.requestId] = true;
         return;
     }
@@ -165,7 +162,6 @@ outer:
     let rule: Rule;
     for (rule of outbound) {
         if (rule.matcher(details.url)) {
-            console.log("onBeforeSendHeaders: matched", details.url, 'to', rule)
             cancel = !rule.accept;
             break;
         }
