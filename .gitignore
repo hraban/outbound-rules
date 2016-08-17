@@ -8,7 +8,7 @@ bower_components/
 
 # Typescript compilation output
 /*.js
-/__tests__/*.js
+/tests/*.js
 
 # Just noise
 *~
