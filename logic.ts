@@ -176,7 +176,7 @@ outer:
         return;
     }
 
-    // TODO: schemas
+    // TODO: schemas. Currently still vulnerable to downgrading https to http.
 
     const targetDomain = getHost(details.url);
     const originDomain = getHost(origin);
