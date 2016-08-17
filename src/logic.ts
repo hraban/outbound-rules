@@ -59,7 +59,7 @@ interface PatternMatcher {
 }
 
 interface ParsedRule {
-    allow: boolean,
+    accept: boolean,
     from: string[],
     text: string
 }
@@ -73,7 +73,7 @@ function trim(x: string) { return x.trim() }
 function parseOneAux(action: string, from_: string) {
     return {
         // err on the side of deny; any typos or otherwise unknown actions become "deny"
-        allow: action.trim().toLowerCase() === "allow",
+        accept: action.trim().toLowerCase() === "accept",
         from: from_.split(/\s/).map(trim).filter(Boolean),
     };
 }
@@ -84,25 +84,6 @@ export function parseOne(ruletext: string): ParsedRule {
     return rule;
 }
 
-// < "Deny: SELF   , Allow    :  Foo Bar bas.sadf.sadf.f,Deny:ALL"
-//
-// > [
-// >   {
-// >     allow: false,
-// >     from: ["SELF"],
-// >     text: "Deny: SELF"
-// >   },
-// >   {
-// >     allow: true,
-// >     from: ["Foo", "Bar", "bas.sadf.sadf.f"],
-// >     text: "Allow    :  Foo Bar bas.sadf.sadf.f"
-// >   },
-// >   {
-// >     allow: false,
-// >     from: ["ALL"],
-// >     text: "Deny:ALL"
-// >   }
-// > ]
 export function parse(outheader: string): ParsedRule[] {
     return outheader.split(',').map(trim).filter(Boolean).map(parseOne);
 }
@@ -151,7 +132,7 @@ export function onBeforeSendHeaders(details) {
     }
 
     // Use the headers to get the origin because tab.get is async
-    let origin: string, outboundRules: string;
+    let origin: string;
 outer:
     for (let header of headers) {
         switch (header.name) {
@@ -184,7 +165,8 @@ outer:
     let rule: Rule;
     for (rule of outbound) {
         if (rule.matcher(details.url)) {
-            cancel = !rule.allow;
+            console.log("onBeforeSendHeaders: matched", details.url, 'to', rule)
+            cancel = !rule.accept;
             break;
         }
     }
