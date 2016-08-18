@@ -11,6 +11,9 @@ bower_components/
 
 background.js
 
+*.zip
+*.xpi
+
 # Just noise
 *~
 *.orig

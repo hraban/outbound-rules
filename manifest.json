@@ -3,7 +3,7 @@
 
   "name": "Outbound rules",
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
-  "version": "1.0",
+  "version": "0.1alpha1",
 
   
   "browser_action": {

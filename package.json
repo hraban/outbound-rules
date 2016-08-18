@@ -1,11 +1,12 @@
 {
   "name": "outbound-rules",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
   "scripts": {
-    "test": "npm run build && jest",
-    "build": "tsc",
-    "release": "npm run build && rollup build/chrome-background.js > background.js"
+    "compile": "tsc",
+    "test": "npm run compile && jest",
+    "build": "npm run compile && rollup build/chrome-background.js > background.js",
+    "release": "ver=$(jq -r .version < manifest.json) && npm run build && zip -r outbound-rules-$ver.xpi manifest.json logo.png background.js LICENSE AUTHORS README.md"
   },
   "jest": {
     "testRegex": "build/tests/.*\\.js$"

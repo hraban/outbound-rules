@@ -101,7 +101,7 @@ $ npm test
 Build the WebExtension plugin:
 
 ```sh
-$ npm run release
+$ npm run build
 ```
 
 You can load the plugin from Chrome by visiting
@@ -111,3 +111,16 @@ clicking "load unpackaged extension".
 For Firefox, visit [about:debugging](about:debugging), click Load Temporary
 Add-on, and select any file in the plugin's root directory.
 
+To create a releaseable plugin file:
+
+```sh
+$ npm run release
+```
+
+## Source, license and authors
+
+The license for this program can be found in the LICENSE file. The list of
+authors is kept in the AUTHORS file.
+
+The full, buildable source code can be found on the project's GitHub page:
+https://github.com/hraban/outbound-rules.
