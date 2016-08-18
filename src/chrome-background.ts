@@ -12,6 +12,7 @@ var filter = {
     urls: ["<all_urls>"],
 };
 
+const plugin = new logic.OutboundRulesPlugin(true);
 declare var chrome: any;
-chrome.webRequest.onHeadersReceived.addListener(logic.onHeadersReceived, filter, ["responseHeaders" /*,  "blocking"? would it be a race not to? */]);
-chrome.webRequest.onBeforeSendHeaders.addListener(logic.onBeforeSendHeaders, filter, ["blocking", "requestHeaders"]);
+chrome.webRequest.onHeadersReceived.addListener(x => plugin.onHeadersReceived(x), filter, ["responseHeaders" /*,  "blocking"? would it be a race not to? */]);
+chrome.webRequest.onBeforeSendHeaders.addListener(x => plugin.onBeforeSendHeaders(x), filter, ["blocking", "requestHeaders"]);

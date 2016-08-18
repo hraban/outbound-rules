@@ -46,12 +46,6 @@ function getHost(url: string): string {
     return a.hostname;
 }
 
-// This dance is necessary because onBeforeSendHeaders doesn't provide access to
-// the response context of the page that caused this request.
-var cache: {[id: string]: Rule[]} = {};
-// Keep track of fresh requests
-var fresh = {};
-
 // A pattern transformed to a function closure which applies the pattern to a
 // URL.
 interface PatternMatcher {
@@ -88,29 +82,28 @@ export function parse(outheader: string): ParsedRule[] {
     return outheader.split(',').map(trim).filter(Boolean).map(parseOne);
 }
 
-export function onHeadersReceived(details) {
-    var headers = details.responseHeaders;
-    if (headers === undefined) {
-        console.error("onHeadersReceived: No resopnse headers available");
-        return;
-    }
-
-    if (!(details.requestId in fresh)) {
-        return;
-    }
-    delete fresh[details.requestId];
-
-    var outboundRules;
-outer:
+function getOutboundHeader(headers): string {
     for (let header of headers) {
         switch (header.name) {
             case "Outbound-Rules":
-                outboundRules = header.value;
-                break outer;
+                return header.value;
         }
     }
-    const originHost = getHost(details.url).toLowerCase();
-    const rules = <Rule[]>parse(outboundRules || "");
+}
+
+function getOriginHeader(headers): string {
+    for (let header of headers) {
+        switch (header.name) {
+            case "Origin":
+            case "Referer":
+            case "Referrer":
+                return header.value;
+        }
+    }
+}
+
+// Attach matcher functions to each rule
+function ruleMatchers(rules: Rule[], originHost: string) {
     rules.forEach(function (rule) {
         // The hosts this rule matches on
         const from = rule.from.map(x => x === "SELF" ? originHost : x);
@@ -119,59 +112,96 @@ outer:
         const matchers = from.map(matcher);
         rule.matcher = url => matchers.some(match => match(url));
     });
-    // TODO: indexed by tab id --- how does that play with frames?
-    cache[details.tabId] = rules;
 }
 
-export function onBeforeSendHeaders(details) {
-    const headers = details.requestHeaders;
-    if (headers === undefined) {
-        console.error("onBeforeSendHeaders: No request headers available");
-        return;
+// Stateful OutboundRules plugin manager which tracks incoming requests
+// with Outbound-Rules headers and tests outgoing requests against those
+// rules. Only the on* methods are actually Chrome specific.
+export class OutboundRulesPlugin {
+    // This dance is necessary because onBeforeSendHeaders doesn't provide
+    // access to the response context of the page that caused this request.
+    private cache: {[id: string]: Rule[]} = {};
+    // Keep track of fresh requests. These are "initializing" requests: e.g.
+    // when you enter a URL on the address bar and press enter: the "fresh"
+    // request will be the one actually fetching that URL. This is marked by the
+    // "beforeSendHeaders" handlers, but actually used by the "receivedHeaders"
+    // handler to extract the Outbound-Rules header.
+    private fresh: {[requestId: string]: boolean} = {};
+
+    constructor(private debug: boolean) {}
+
+    initRequest(tabId: number, url: string, outboundRules?: string) {
+        const originHost = getHost(url).toLowerCase();
+        const rules = <Rule[]>parse(outboundRules || "");
+        ruleMatchers(rules, originHost);
+        // TODO: indexed by tab id --- how does that play with frames?
+        this.cache[tabId] = rules;
     }
 
-    // Use the headers to get the origin because tab.get is async
-    let origin: string;
-outer:
-    for (let header of headers) {
-        switch (header.name) {
-            case "Origin":
-            case "Referer":
-            case "Referrer":
-                origin = header.value;
-                break outer;
+    // The rule that matches this outgoing request (if any)
+    private findRule(tabId: number, url: string): Rule {
+        const outbound = this.cache[tabId];
+        if (outbound === undefined) {
+            console.error(`onBeforeSendHeaders: no outbound rules cached for ${tabId}:`, url);
+            return;
         }
+
+        // TODO: schemas. Currently still vulnerable to downgrading https to http.
+
+        return outbound.find(rule => rule.matcher(url));
     }
 
-    if (origin === undefined || origin === details.url) {
-        fresh[details.requestId] = true;
-        return;
-    }
+    shouldCancel(tabId: number, url: string, origin: string): boolean {
+        const rule = this.findRule(tabId, url);
+        const cancel = rule ? !rule.accept : undefined;
 
-    const outbound = cache[details.tabId];
-    if (outbound === undefined) {
-        console.error("onBeforeSendHeaders: no outbound rules cached for " + details.tabId + " (" + details.requestId + "): " + details.url);
-        return;
-    }
-
-    // TODO: schemas. Currently still vulnerable to downgrading https to http.
-
-    const targetDomain = getHost(details.url);
-    const originDomain = getHost(origin);
-    let cancel: boolean;
-    let rule: Rule;
-    for (rule of outbound) {
-        if (rule.matcher(details.url)) {
-            cancel = !rule.accept;
-            break;
+        if (cancel !== undefined && this.debug) {
+            const verb = cancel ? "Blocked" : "Allowed";
+            console.log(verb, "loading", url, "from", origin, "(rule: " + rule.text + ")");
         }
+
+        return cancel;
     }
 
-    if (cancel !== undefined) {
-        const verb = cancel ? "Blocked" : "Allowed";
-        console.log(verb, "loading", details.url, "from", origin, "(rule: " + rule.text + ")");
+    // Chrome extension handler called when headers are received but not yet
+    // processed by the application.
+    onHeadersReceived(details) {
+        var headers = details.responseHeaders;
+        if (headers === undefined) {
+            console.error("onHeadersReceived: No response headers available");
+            return;
+        }
+
+        if (!(details.requestId in this.fresh)) {
+            // This is a subrequest of a tab (e.g. a loaded resource). Don't
+            // use this to set the outbound rules.
+            return;
+        }
+        delete this.fresh[details.requestId];
+
+        this.initRequest(details.tabId, getOutboundHeader(details));
     }
 
-    // TODO: Don't use {cancel: ..} because a link visit will automatically reload
-    return { cancel: !!cancel };
+    // Chrome extension handler called when a request is *about to get made*
+    // but has not actually been sent yet. Last chance to cancel it.
+    onBeforeSendHeaders(details) {
+        const headers = details.requestHeaders;
+        if (headers === undefined) {
+            console.error("onBeforeSendHeaders: No request headers available");
+            return;
+        }
+
+        // Use the headers to get the origin because tab.get is async
+        const origin = getOriginHeader(headers);
+
+        if (origin === undefined || origin === details.url) {
+            this.fresh[details.requestId] = true;
+            return;
+        }
+
+        const cancel = this.shouldCancel(details.tabId, details.url, origin);
+
+        // TODO: Don't use {cancel: ..} because a link visit will automatically reload
+        return { cancel: !!cancel };
+    }
 }
