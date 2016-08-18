@@ -1,4 +1,4 @@
-## Outbound-Rules extension for Chrome
+## Outbound-Rules WebExtension for Chrome and Firefox
 
 To protect your page against XSS, specify which hosts the page is allowed to
 issue outgoing requests to. E.g.:
@@ -77,11 +77,15 @@ Run all tests:
 $ npm test
 ```
 
-Build the Chrome plugin:
+Build the WebExtension plugin:
 
 ```sh
 $ npm run release
 ```
 
-You can load the plugin from Chrome by visiting chrome://extensions, enabling
-"developer mode" and clicking "load unpackaged extension".
+You can load the plugin from Chrome by visiting
+[chrome://extensions](chrome://extensions), enabling "developer mode" and
+clicking "load unpackaged extension".
+
+For Firefox, visit [about:debugging](about:debugging), click Load Temporary
+Add-on, and select any file in the plugin's root directory.

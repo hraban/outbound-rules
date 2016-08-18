@@ -3,7 +3,7 @@
 // Licensed under the AGPL. See the LICENSE file for more info.
 
 
-// The logic for the plugin as a module.
+// The logic for the WebExtension plugin as a module.
 
 // A pattern transformed to a function closure which applies the pattern to a
 // URL. Used to keep rule users agnostic of their implementation.
@@ -117,7 +117,7 @@ function ruleMatchers(rules: Rule[], originHost: string) {
 
 // Stateful OutboundRules plugin manager which tracks incoming requests
 // with Outbound-Rules headers and tests outgoing requests against those
-// rules. Only the on* methods are actually Chrome specific.
+// rules. Only the on* methods are actually WebExtension specific.
 export class OutboundRulesPlugin {
     // This dance is necessary because onBeforeSendHeaders doesn't provide
     // access to the response context of the page that caused this request.
@@ -164,7 +164,7 @@ export class OutboundRulesPlugin {
         return cancel;
     }
 
-    // Chrome extension handler called when headers are received but not yet
+    // WebExtension handler called when headers are received but not yet
     // processed by the application.
     onHeadersReceived(details: chrome.webRequest.WebResponseHeadersDetails) {
         var headers = details.responseHeaders;
@@ -188,7 +188,7 @@ export class OutboundRulesPlugin {
         this.initRequest(details.tabId, details.url, outboundRules);
     }
 
-    // Chrome extension handler called when a request is *about to get made*
+    // WebExtension handler called when a request is *about to get made*
     // but has not actually been sent yet. Last chance to cancel it.
     onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
         const headers = details.requestHeaders;
