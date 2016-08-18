@@ -66,7 +66,7 @@ what Outbound-Rules tries to solve:
 > is, or declare its boundaries especially if they span across multiple domains,
 > a scenario becoming more common and common in these “mashups” and “social
 > media” days.
-
+>
 > The idea behind the Application Boundaries Enforcer (ABE) module is hardening
 > the web application oriented protections already provided by NoScript, by
 > delivering a firewall-like component running inside the browser. This
@@ -78,8 +78,8 @@ what Outbound-Rules tries to solve:
 Hear, hear.
 
 Unfortunately, as it turns out, ABE is mostly about defining what _incoming_
-requests are legal for your server. It doesn't really let you what _outgoing_
-requests are legal.
+requests are legal for your server. It doesn't really let you specify what
+_outgoing_ requests are legal.
 
 Still, in trying not to reinvent the wheel, I have tried to imitate their style
 and syntax as much as reasonable.
