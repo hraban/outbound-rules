@@ -83,7 +83,7 @@ export function parse(outheader: string): ParsedRule[] {
     return outheader.split(',').map(trim).filter(Boolean).map(parseOne);
 }
 
-function getOutboundHeader(headers): string {
+function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
         switch (header.name) {
             case "Outbound-Rules":
@@ -92,7 +92,7 @@ function getOutboundHeader(headers): string {
     }
 }
 
-function getOriginHeader(headers): string {
+function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
         switch (header.name) {
             case "Origin":
@@ -180,7 +180,12 @@ export class OutboundRulesPlugin {
         }
         delete this.fresh[details.requestId];
 
-        this.initRequest(details.tabId, getOutboundHeader(details));
+        const outboundRules = getOutboundHeader(headers);
+        if (outboundRules !== undefined && this.debug) {
+            console.log(`Initializing rules for tab #${details.tabId} ${details.url}:`, outboundRules);
+        }
+
+        this.initRequest(details.tabId, details.url, outboundRules);
     }
 
     // Chrome extension handler called when a request is *about to get made*
@@ -191,7 +196,6 @@ export class OutboundRulesPlugin {
             console.error("onBeforeSendHeaders: No request headers available");
             return;
         }
-
         // Use the headers to get the origin because tab.get is async
         const origin = getOriginHeader(headers);
 
