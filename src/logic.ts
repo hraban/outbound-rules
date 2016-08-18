@@ -103,6 +103,21 @@ function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
     }
 }
 
+function getOrigin(details: chrome.webRequest.WebRequestHeadersDetails): string {
+    // Firefox provides details.originUrl, which is exactly what we need.
+    if ((<any>details).originUrl !== undefined) {
+        return (<any>details).originUrl;
+    }
+    // Use the headers to get the origin because tab.get is async
+    // BUG: Doesn't work for https:// -> http:// connections
+    const headers = details.requestHeaders;
+    if (headers === undefined) {
+        console.error("onBeforeSendHeaders: No request headers available");
+        return;
+    }
+    return getOriginHeader(headers);
+}
+
 // Attach matcher functions to each rule
 function ruleMatchers(rules: Rule[], originHost: string) {
     rules.forEach(function (rule) {
@@ -191,13 +206,7 @@ export class OutboundRulesPlugin {
     // WebExtension handler called when a request is *about to get made*
     // but has not actually been sent yet. Last chance to cancel it.
     onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
-        const headers = details.requestHeaders;
-        if (headers === undefined) {
-            console.error("onBeforeSendHeaders: No request headers available");
-            return;
-        }
-        // Use the headers to get the origin because tab.get is async
-        const origin = getOriginHeader(headers);
+        const origin = getOrigin(details);
 
         if (origin === undefined || origin === details.url) {
             this.fresh[details.requestId] = true;
