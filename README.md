@@ -10,6 +10,21 @@ Outbound-Rules: Accept: SELF code.jquery.com, Deny: ALL
 will only allow requests to your own hostname and to code.jquery.com. Anything
 else is forbidden.
 
+## Details
+
+This system protects you against an attack where some malicious javascript finds
+its way onto your page (e.g. you forgot to HTML escape a value before rendering
+it on your page, like a user's e-mail address in an admin dashboard). Once this
+attacker controlled javascript is executed, they can "steal" session cookies or
+other data only visible to your session by sending it to an attacker controlled
+server. E.g.  through XHR, by loading an image in the background, or by making
+the entire page a link to a remote page which quickly links back.
+
+This plugin doesn't prevent the initial javascript from being loaded or
+executed. Rather, it prevents it from ever "escaping" your host. This means that
+even though the script now has access to sensitive data, it cannot send it
+anywhere. At least not through the browser.
+
 ## Syntax
 
 If a page has a HTTP header with name `Outbound-Rules`, the value is parsed as a
@@ -37,31 +52,37 @@ sequentially (before the request is made). The first matching rule will be used
 as the action to take for a request. If no rule matches, the default is to allow
 the request.
 
-### Inspired by NoScript's ABE
+## Inspired by NoScript's ABE
 
 The syntax was inspired by NoScript's ABE: https://noscript.net/abe/. ABE is the
 Application Boundaries Enforcer, and on the surface it's the perfect fit for
-what Outbound-Rules tries to solve. Unfortunately, as it turns out, ABE is
-mostly about defining what _incoming_ requests are legal for your server. It
-doesn't really let you what _outgoing_ requests are legal.
+what Outbound-Rules tries to solve:
+
+> Many of the threats NoScript is currently capable of handling, such as XSS,
+> CSRF or ClickJacking, have one common evil root: lack of proper isolation at
+> the web application level. Since the web has not been originally conceived as
+> an application platform, it misses some key features required for ensuring
+> application security. Actually, it cannot even define what a “web application”
+> is, or declare its boundaries especially if they span across multiple domains,
+> a scenario becoming more common and common in these “mashups” and “social
+> media” days.
+
+> The idea behind the Application Boundaries Enforcer (ABE) module is hardening
+> the web application oriented protections already provided by NoScript, by
+> delivering a firewall-like component running inside the browser. This
+> "firewall" is specialized in defining and guarding the boundaries of each
+> sensitive web application relevant to the user (e.g. webmail, online banking
+> and so on), according to policies defined either by the user himself, or by
+> the web developer/administrator, or by a trusted 3rd party.
+
+Hear, hear.
+
+Unfortunately, as it turns out, ABE is mostly about defining what _incoming_
+requests are legal for your server. It doesn't really let you what _outgoing_
+requests are legal.
 
 Still, in trying not to reinvent the wheel, I have tried to imitate their style
 and syntax as much as reasonable.
-
-## Details
-
-This system protects you against an attack where some malicious javascript finds
-its way onto your page (e.g. you forgot to HTML escape a value before rendering
-it on your page, like a user's e-mail address). Once this attacker controlled
-javascript is executed, they can "steal" session cookies or other data only
-visible to your session by sending it to an attacker controlled server. E.g.
-through XHR, by loading an image in the background, or by making the entire page
-a link to a remote page which quickly links back.
-
-This plugin doesn't prevent the initial javascript from being loaded or
-executed. Rather, it prevents it from ever "escaping" your host. This means that
-even though the script now has access to sensitive data, it cannot send it
-anywhere. At least not through the browser.
 
 ## Build
 
@@ -89,3 +110,4 @@ clicking "load unpackaged extension".
 
 For Firefox, visit [about:debugging](about:debugging), click Load Temporary
 Add-on, and select any file in the plugin's root directory.
+
