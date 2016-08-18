@@ -5,6 +5,23 @@
 
 // The logic for the plugin as a module.
 
+// A pattern transformed to a function closure which applies the pattern to a
+// URL. Used to keep rule users agnostic of their implementation.
+interface PatternMatcher {
+    (url: string): boolean
+}
+
+interface ParsedRule {
+    accept: boolean,
+    from: string[],
+    text: string
+}
+
+interface Rule extends ParsedRule {
+    // Use this to test whether the rule applies to a URL.
+    matcher: PatternMatcher
+}
+
 function matchDot(pattern: string, url: string) {
     const host = getHost(url).toLowerCase();
     if (pattern.length === host.length + 1) {
@@ -20,7 +37,7 @@ function isAbsolute(url: string): boolean {
 }
 
 // Create a matcher function for this pattern.
-export function matcher(pattern: string): (url: string) => boolean {
+export function matcher(pattern: string): PatternMatcher {
     if (pattern === "ALL") {
         return () => true;
     }
@@ -44,22 +61,6 @@ function getHost(url: string): string {
     const a = document.createElement('a');
     a.href = url;
     return a.hostname;
-}
-
-// A pattern transformed to a function closure which applies the pattern to a
-// URL.
-interface PatternMatcher {
-    (url: string): boolean
-}
-
-interface ParsedRule {
-    accept: boolean,
-    from: string[],
-    text: string
-}
-
-interface Rule extends ParsedRule {
-    matcher: PatternMatcher
 }
 
 function trim(x: string) { return x.trim() }
@@ -165,7 +166,7 @@ export class OutboundRulesPlugin {
 
     // Chrome extension handler called when headers are received but not yet
     // processed by the application.
-    onHeadersReceived(details) {
+    onHeadersReceived(details: chrome.webRequest.WebResponseHeadersDetails) {
         var headers = details.responseHeaders;
         if (headers === undefined) {
             console.error("onHeadersReceived: No response headers available");
@@ -184,7 +185,7 @@ export class OutboundRulesPlugin {
 
     // Chrome extension handler called when a request is *about to get made*
     // but has not actually been sent yet. Last chance to cancel it.
-    onBeforeSendHeaders(details) {
+    onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
         const headers = details.requestHeaders;
         if (headers === undefined) {
             console.error("onBeforeSendHeaders: No request headers available");
