@@ -2,15 +2,15 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "outDir": "build"
+    "outDir": "build",
+    "rootDirs": [
+      "typings",
+      "src"
+    ]
   },
   "exclude": [
     "node_modules",
     "build",
     "*.js"
-  ],
-  "rootDirs": [
-    "typings",
-    "src"
   ]
 }
