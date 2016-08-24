@@ -146,37 +146,53 @@ export class OutboundRulesPlugin {
 
     constructor(private debug: boolean) {}
 
-    initRequest(tabId: number, url: string, outboundRules?: string) {
+    initRequest(tabId: number, url: string, outboundRules: string) {
         const originHost = getHost(url).toLowerCase();
-        const rules = <Rule[]>parse(outboundRules || "");
+
+        const rules = <Rule[]>parse(outboundRules);
         ruleMatchers(rules, originHost);
+
         // TODO: indexed by tab id --- how does that play with frames?
         this.cache[tabId] = rules;
     }
 
-    // The rule that matches this outgoing request (if any)
+    // The rule that matches this outgoing request, if any.
+    //
+    // If no outbound rules were defined for this request, this function returns
+    // undefined. If outbound rules were defined but none matched, it returns
+    // null.
     private findRule(tabId: number, url: string): Rule {
         const outbound = this.cache[tabId];
+
         if (outbound === undefined) {
-            console.error(`onBeforeSendHeaders: no outbound rules cached for ${tabId}:`, url);
-            return;
+            // This page had no outbound rules
+            return undefined;
         }
 
         // TODO: schemas. Currently still vulnerable to downgrading https to http.
 
-        return outbound.find(rule => rule.matcher(url));
+        return outbound.find(rule => rule.matcher(url)) || null;
     }
 
-    shouldCancel(tabId: number, url: string, origin: string): boolean {
+    // The origin parameter is only required for logging. (TODO: refactor)
+    shouldAccept(tabId: number, url: string, origin: string): boolean {
         const rule = this.findRule(tabId, url);
-        const cancel = rule ? !rule.accept : undefined;
 
-        if (cancel !== undefined && this.debug) {
-            const verb = cancel ? "Blocked" : "Allowed";
-            console.log(verb, "loading", url, "from", origin, "(rule: " + rule.text + ")");
+        if (rule === undefined) {
+            // No rules set, default to accept
+            return true;
         }
 
-        return cancel;
+        // Default to deny if no rule was found
+        const accept = rule === null ? false : rule.accept;
+
+        if (this.debug) {
+            const verb = accept ? "Allowed" : "Blocked";
+            const ruletext = rule === null ? "default: deny" : `rule: ${rule.text}`;
+            console.log(verb, "loading", url, "from", origin, `(${ruletext})`);
+        }
+
+        return accept;
     }
 
     // WebExtension handler called when headers are received but not yet
@@ -196,7 +212,11 @@ export class OutboundRulesPlugin {
         delete this.fresh[details.requestId];
 
         const outboundRules = getOutboundHeader(headers);
-        if (outboundRules !== undefined && this.debug) {
+        if (outboundRules === undefined) {
+            return;
+        }
+
+        if (this.debug) {
             console.log(`Initializing rules for tab #${details.tabId} ${details.url}:`, outboundRules);
         }
 
@@ -213,9 +233,9 @@ export class OutboundRulesPlugin {
             return;
         }
 
-        const cancel = this.shouldCancel(details.tabId, details.url, origin);
+        const accept = this.shouldAccept(details.tabId, details.url, origin);
 
         // TODO: Don't use {cancel: ..} because a link visit will automatically reload
-        return { cancel: !!cancel };
+        return { cancel: !accept };
     }
 }

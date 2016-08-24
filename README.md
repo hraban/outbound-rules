@@ -49,8 +49,8 @@ is currently loaded from.
 
 For every outgoing request generated from that page, all rules are tested
 sequentially (before the request is made). The first matching rule will be used
-as the action to take for a request. If no rule matches, the default is to allow
-the request.
+as the action to take for a request. If rules were specified, but none match,
+the default is to deny the request.
 
 ## Inspired by NoScript's ABE
 
