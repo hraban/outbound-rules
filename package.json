@@ -8,9 +8,6 @@
     "build": "npm run compile && rollup build/chrome-background.js > background.js",
     "release": "ver=$(jq -r .version < manifest.json) && npm run build && zip -r outbound-rules-$ver.xpi manifest.json logo.png background.js LICENSE AUTHORS README.md"
   },
-  "jest": {
-    "testRegex": "build/tests/.*\\.js$"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hraban/chrome-outbound-rules.git"
@@ -23,7 +20,7 @@
   "devDependencies": {
     "babel-jest": "=14.1.0",
     "babel-preset-es2015": "=6.13.2",
-    "jest-cli": "=14.1.0",
+    "jest-cli": "=17.0.3",
     "rollup": "=0.34.10",
     "typescript": "=2.0.0"
   }
