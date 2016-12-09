@@ -4,12 +4,10 @@
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
   "scripts": {
     "compile": "tsc",
-    "test": "npm run compile && jest",
-    "build": "npm run compile && rollup build/chrome-background.js > background.js",
-    "release": "ver=$(jq -r .version < manifest.json) && npm run build && zip -r outbound-rules-$ver.xpi manifest.json logo.png background.js LICENSE AUTHORS README.md"
-  },
-  "jest": {
-    "testRegex": "build/tests/.*\\.js$"
+    "test": "jest",
+    "rollup": "npm run compile && rollup build/js/background.js > build/background.js",
+    "build": "npm run rollup && mkdir -p plugin && cp build/background.js manifest.json logo.png LICENSE AUTHORS README.md plugin/",
+    "release": "ver=$(jq -r .version < manifest.json) && npm run build && (cd plugin/ ; zip -r ../outbound-rules-$ver.xpi .)"
   },
   "repository": {
     "type": "git",
@@ -21,9 +19,9 @@
   },
   "homepage": "https://github.com/hraban/chrome-outbound-rules",
   "devDependencies": {
-    "babel-jest": "=14.1.0",
+    "babel-jest": "=17.0.2",
     "babel-preset-es2015": "=6.13.2",
-    "jest-cli": "=14.1.0",
+    "jest-cli": "=17.0.3",
     "rollup": "=0.34.10",
     "typescript": "=2.0.0"
   }
