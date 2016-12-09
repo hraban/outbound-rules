@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/hraban/chrome-outbound-rules",
   "devDependencies": {
-    "babel-jest": "=14.1.0",
+    "babel-jest": "=17.0.2",
     "babel-preset-es2015": "=6.13.2",
     "jest-cli": "=17.0.3",
     "rollup": "=0.34.10",
