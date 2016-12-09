@@ -85,8 +85,8 @@ export function parse(outheader: string): ParsedRule[] {
 
 function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
-        switch (header.name) {
-            case "Outbound-Rules":
+        switch (header.name.toLowerCase()) {
+            case "outbound-rules":
                 return header.value;
         }
     }
