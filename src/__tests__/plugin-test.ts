@@ -3,7 +3,7 @@ jest.unmock('../logic');
 import { OutboundRulesPlugin } from '../logic';
 
 describe('plugin object with rules', () => {
-  const plugin = new OutboundRulesPlugin(false);
+  const plugin = new OutboundRulesPlugin(1);
 
   it('can be initialized', () => {
     plugin.initRequest(1, "https://foo.bar/", "Accept: SELF example.com, Deny: evil.com");

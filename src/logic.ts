@@ -153,7 +153,11 @@ export class OutboundRulesPlugin {
     // handler to extract the Outbound-Rules header.
     private fresh: {[requestId: string]: boolean} = {};
 
-    constructor(private debug: boolean) {}
+    // verbosity:
+    //   - 0: silent
+    //   - 1: info
+    //   - 2: debug
+    constructor(private debug: number) {}
 
     initRequest(tabId: number, url: string, outboundRules: string) {
         const originHost = getHost(url).toLowerCase();
@@ -213,6 +217,10 @@ export class OutboundRulesPlugin {
             return;
         }
 
+        if (this.debug >= 2) {        
+            console.log("onHeadersReceived():", details);
+        }
+
         if (!(details.requestId in this.fresh)) {
             // This is a subrequest of a tab (e.g. a loaded resource). Don't
             // use this to set the outbound rules.
@@ -236,6 +244,10 @@ export class OutboundRulesPlugin {
     // but has not actually been sent yet. Last chance to cancel it.
     onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
         const origin = getOrigin(details);
+
+        if (this.debug >= 2) {
+            console.log("onBeforeSendHeaders():", details, " -- origin:", origin);
+        }
 
         if (origin === undefined || origin === details.url) {
             this.fresh[details.requestId] = true;
