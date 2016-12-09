@@ -103,10 +103,19 @@ function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
     }
 }
 
+declare global {
+    module chrome.webRequest {
+        export interface WebRequestHeadersDetails {
+            // Non-standard property only supported by Firefox
+            originUrl?: string;
+        }
+    }
+}
+
 function getOrigin(details: chrome.webRequest.WebRequestHeadersDetails): string {
     // Firefox provides details.originUrl, which is exactly what we need.
-    if ((<any>details).originUrl !== undefined) {
-        return (<any>details).originUrl;
+    if (details.originUrl !== undefined) {
+        return details.originUrl;
     }
     // Use the headers to get the origin because tab.get is async
     // BUG: Doesn't work for https:// -> http:// connections
