@@ -5,6 +5,8 @@
   "scripts": {
     "compile": "tsc",
     "test": "jest",
+    "compile-integration-tests": "tsc --outDir build/integration-tests -m commonjs -t ES2015 src/integration-tests/ts/*.ts && cp src/integration-tests/resources/* build/integration-tests",
+    "integration-tests": "node build/integration-tests/all.js",
     "rollup": "npm run compile && rollup build/js/background.js > build/background.js",
     "build-base": "npm run rollup && mkdir -p plugin && cp build/background.js logo.png LICENSE AUTHORS README.md plugin/",
     "build-chrome": "npm run build-base && cp manifest-chrome.json plugin/manifest.json",
@@ -22,6 +24,7 @@
   },
   "homepage": "https://github.com/hraban/chrome-outbound-rules",
   "devDependencies": {
+    "@types/node": "0.0.2",
     "jest-cli": "=17.0.3",
     "rollup": "=0.36.4",
     "typescript": "=2.1.4"

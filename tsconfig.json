@@ -3,12 +3,11 @@
     "target": "es2015",
     "module": "es2015",
     "outDir": "build/js",
-    "rootDirs": [
-      "typings",
-      "src"
-    ]
+    "moduleResolution": "node",
+    "rootDir": "src/main"
   },
   "exclude": [
+    "src/integration-tests",
     "node_modules",
     "build",
     "plugin",

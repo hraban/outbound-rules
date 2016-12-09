@@ -256,7 +256,8 @@ export class OutboundRulesPlugin {
 
         const accept = this.shouldAccept(details.tabId, details.url, origin);
 
-        // TODO: Don't use {cancel: ..} because a link visit will automatically reload
+        // TODO: Don't use {cancel: ..} because a link visit will automatically reload (on Chrome)
+        // https://github.com/hraban/outbound-rules/issues/1
         return { cancel: !accept };
     }
 }
