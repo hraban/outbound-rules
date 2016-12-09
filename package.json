@@ -6,8 +6,11 @@
     "compile": "tsc",
     "test": "jest",
     "rollup": "npm run compile && rollup build/js/background.js > build/background.js",
-    "build": "npm run rollup && mkdir -p plugin && cp build/background.js manifest.json logo.png LICENSE AUTHORS README.md plugin/",
-    "release": "ver=$(jq -r .version < manifest.json) && npm run build && (cd plugin/ ; zip -r ../outbound-rules-$ver.xpi .)"
+    "build-base": "npm run rollup && mkdir -p plugin && cp build/background.js logo.png LICENSE AUTHORS README.md plugin/",
+    "build-chrome": "npm run build-base && cp manifest-chrome.json plugin/manifest.json",
+    "build-firefox": "npm run build-base && cp manifest-firefox.json plugin/manifest.json",
+    "release-chrome": "npm run build-chrome && (cd plugin/ ; ver=$(jq -r .version < manifest.json) && zip -r ../outbound-rules-$ver.crx .)",
+    "release-firefox": "npm run build-firefox && (cd plugin/ ; ver=$(jq -r .version < manifest.json) && zip -r ../outbound-rules-$ver.xpi .)"
   },
   "repository": {
     "type": "git",

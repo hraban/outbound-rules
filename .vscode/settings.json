@@ -6,7 +6,9 @@
     "**/.hg": true,
     "**/.DS_Store": true,
     "node_modules/": true,
-    "**~": true
+    "**~": true,
+    "*.crx": true,
+    "*.xpi": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
