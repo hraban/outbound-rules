@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "outDir": "build",
+    "outDir": "build/js",
     "rootDirs": [
       "typings",
       "src"

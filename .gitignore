@@ -9,6 +9,7 @@ bower_components/
 # Typescript compilation output
 /build/
 
+/plugin/
 background.js
 
 *.zip

@@ -4,9 +4,10 @@
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
   "scripts": {
     "compile": "tsc",
-    "test": "npm run compile && jest",
-    "build": "npm run compile && rollup build/chrome-background.js > background.js",
-    "release": "ver=$(jq -r .version < manifest.json) && npm run build && zip -r outbound-rules-$ver.xpi manifest.json logo.png background.js LICENSE AUTHORS README.md"
+    "test": "jest",
+    "rollup": "npm run compile && rollup build/js/background.js > build/background.js",
+    "build": "npm run rollup && mkdir -p plugin && cp build/background.js manifest.json logo.png LICENSE AUTHORS README.md plugin/",
+    "release": "ver=$(jq -r .version < manifest.json) && npm run build && (cd plugin/ ; zip -r ../outbound-rules-$ver.xpi .)"
   },
   "repository": {
     "type": "git",
