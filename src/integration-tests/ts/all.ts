@@ -33,7 +33,7 @@ import * as webdriver from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome';
 
 import {server} from './server';
-import {testA} from './a';
+import * as testImg from './test-img';
 
 const chromeExtensionPath = "outbound-rules-0.0.1.crx";
 
@@ -46,7 +46,7 @@ interface Tester {
 }
 
 const tests: Tester[] = [
-    testA,
+    testImg.test,
 ]
 
 function all(): Promise<void> {
