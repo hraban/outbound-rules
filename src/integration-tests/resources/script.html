@@ -2,7 +2,7 @@
 <html>
 
 <head>
-<title>Testing &lt;img&gt;</title>
+<title>Testing &lt;script&gt;</title>
 </head>
 
 <body>
@@ -20,13 +20,23 @@ function loadERR() {
 }
 </script>
 
-You shouldn't see this image:
+You shouldn't see any text here:
 <br>
-<img
-  id=tester
-  onload="loadOK()"
-  onerror="loadERR()"
-  src='https://cdn.hyperdev.com/us-east-1%3A9141bbcb-b91c-4d0e-8ab6-8bf2a0eb4b99%2Fdevil.png'>
+
+<script>
+var loaded=false;
+</script>
+
+<script src=set-loaded-true.js></script>
+
+<script>
+if (loaded) {
+  loadOK();
+  document.write('<p>Script loaded successfully');
+} else {
+  loadERR();
+}
+</script>
 
 </body>
 
