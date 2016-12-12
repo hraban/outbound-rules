@@ -10,7 +10,8 @@
     "*.crx": true,
     "*.xpi": true,
     "plugin": true,
-    "build": true
+    "build": true,
+    "jest": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
