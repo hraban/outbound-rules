@@ -32,9 +32,7 @@ import * as webdriver from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome';
 
 import {server} from './server';
-
-var By = webdriver.By,
-    until = webdriver.until;
+import {testA} from './a';
 
 const chromeExtensionPath = "outbound-rules-0.0.1.crx";
 
@@ -46,24 +44,6 @@ interface Tester {
     (driver: any, urlbase: string): Promise<void>
 }
 
-function testA(driver, base): Promise<void> {
-    driver.get(`${base}/a.html`);
-    return driver.findElement(By.id('output')).then(output => {
-        return driver.wait(until.elementIsVisible(output), 5000).then(() => {
-            return output.getText().then(text => {
-                console.log("Output is visible. Text: " + text);
-                if (text === "SUCCESS") {
-                    return Promise.resolve();
-                } else {
-                    const msg = "a.html: image should not have loaded";
-                    console.error(msg);
-                    return Promise.reject(msg);
-                }
-            });
-        });
-    });
-}
-
 const tests: Tester[] = [
     testA,
 ]
@@ -71,13 +51,14 @@ const tests: Tester[] = [
 function all(): Promise<void> {
     const s = server();
     s.listen(24119, "127.0.0.1");
+    const base = 'http://localhost:24119';
     console.log("Server is listening");
     const driver = new webdriver.Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions())
         .build();
 
-    const running = tests.map(f => f(driver, 'http://localhost:24119'));
+    const running = tests.map(f => f(driver, base));
     return Promise.all(running).then(() => {
         console.log("All tests completed successfully.");
     }, (err) => {
