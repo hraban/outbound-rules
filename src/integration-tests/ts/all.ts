@@ -28,6 +28,7 @@
  *     node selenium-webdriver/example/google_search.js
  */
 
+import * as process from 'process';
 import * as webdriver from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome';
 
@@ -61,11 +62,15 @@ function all(): Promise<void> {
     const running = tests.map(f => f(driver, base));
     return Promise.all(running).then(() => {
         console.log("All tests completed successfully.");
+        return 0;
     }, (err) => {
         console.error("Integration tests failed:", err);
-    }).then(() => {
-        driver.quit()
+        return 1;
+    }).then((code: number) => {
         s.close();
+        driver.quit().then(() => {
+            process.exit(code);
+        });
     });
 }
 
