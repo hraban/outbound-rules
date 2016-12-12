@@ -6,7 +6,7 @@ const By = webdriver.By,
 export function testA(driver, base): Promise<void> {
     driver.get(`${base}/a.html`);
     return driver.findElement(By.id('output')).then(output => {
-        return driver.wait(until.elementIsVisible(output), 5000).then(() => {
+        return driver.wait(until.elementIsVisible(output), 10000).then(() => {
             return output.getText().then(text => {
                 if (text === "SUCCESS") {
                     return Promise.resolve();
