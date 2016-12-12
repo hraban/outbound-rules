@@ -94,10 +94,10 @@ function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
 
 function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
-        switch (header.name) {
-            case "Origin":
-            case "Referer":
-            case "Referrer":
+        switch (header.name.toLowerCase()) {
+            case "origin":
+            case "referer":
+            case "referrer":
                 return header.value;
         }
     }
