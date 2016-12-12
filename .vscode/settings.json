@@ -8,7 +8,9 @@
     "node_modules/": true,
     "**~": true,
     "*.crx": true,
-    "*.xpi": true
+    "*.xpi": true,
+    "plugin": true,
+    "build": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
