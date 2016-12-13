@@ -85,8 +85,8 @@ export function parse(outheader: string): ParsedRule[] {
 
 function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
-        switch (header.name) {
-            case "Outbound-Rules":
+        switch (header.name.toLowerCase()) {
+            case "outbound-rules":
                 return header.value;
         }
     }
@@ -94,10 +94,10 @@ function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
 
 function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
     for (let header of headers) {
-        switch (header.name) {
-            case "Origin":
-            case "Referer":
-            case "Referrer":
+        switch (header.name.toLowerCase()) {
+            case "origin":
+            case "referer":
+            case "referrer":
                 return header.value;
         }
     }
@@ -153,7 +153,11 @@ export class OutboundRulesPlugin {
     // handler to extract the Outbound-Rules header.
     private fresh: {[requestId: string]: boolean} = {};
 
-    constructor(private debug: boolean) {}
+    // verbosity:
+    //   - 0: silent
+    //   - 1: info
+    //   - 2: debug
+    constructor(private debug: number) {}
 
     initRequest(tabId: number, url: string, outboundRules: string) {
         const originHost = getHost(url).toLowerCase();
@@ -213,6 +217,10 @@ export class OutboundRulesPlugin {
             return;
         }
 
+        if (this.debug >= 2) {        
+            console.log("onHeadersReceived():", details);
+        }
+
         if (!(details.requestId in this.fresh)) {
             // This is a subrequest of a tab (e.g. a loaded resource). Don't
             // use this to set the outbound rules.
@@ -237,6 +245,10 @@ export class OutboundRulesPlugin {
     onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
         const origin = getOrigin(details);
 
+        if (this.debug >= 2) {
+            console.log("onBeforeSendHeaders():", details, " -- origin:", origin);
+        }
+
         if (origin === undefined || origin === details.url) {
             this.fresh[details.requestId] = true;
             return;
@@ -244,7 +256,8 @@ export class OutboundRulesPlugin {
 
         const accept = this.shouldAccept(details.tabId, details.url, origin);
 
-        // TODO: Don't use {cancel: ..} because a link visit will automatically reload
+        // TODO: Don't use {cancel: ..} because a link visit will automatically reload (on Chrome)
+        // https://github.com/hraban/outbound-rules/issues/1
         return { cancel: !accept };
     }
 }

@@ -9,11 +9,13 @@ bower_components/
 # Typescript compilation output
 /build/
 
+/jest/
 /plugin/
 background.js
 
 *.zip
 *.xpi
+*.crx
 
 # Just noise
 *~

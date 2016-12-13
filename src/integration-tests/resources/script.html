@@ -1,0 +1,43 @@
+<!DOCTYPE "html">
+<html>
+
+<head>
+<title>Testing &lt;script&gt;</title>
+</head>
+
+<body>
+
+<p id=output hidden></p>
+<script>
+var out = document.getElementById('output');
+function loadOK() {
+  out.textContent = 'FAILURE';
+  out.hidden = false;
+}
+function loadERR() {
+  out.textContent = 'SUCCESS';
+  out.hidden = false;
+}
+</script>
+
+You shouldn't see any text here:
+<br>
+
+<script>
+var loaded=false;
+</script>
+
+<script src=set-loaded-true.js></script>
+
+<script>
+if (loaded) {
+  loadOK();
+  document.write('<p>Script loaded successfully');
+} else {
+  loadERR();
+}
+</script>
+
+</body>
+
+</html>

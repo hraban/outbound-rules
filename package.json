@@ -4,10 +4,17 @@
   "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
   "scripts": {
     "compile": "tsc",
-    "test": "jest",
     "rollup": "npm run compile && rollup build/js/background.js > build/background.js",
-    "build": "npm run rollup && mkdir -p plugin && cp build/background.js manifest.json logo.png LICENSE AUTHORS README.md plugin/",
-    "release": "ver=$(jq -r .version < manifest.json) && npm run build && (cd plugin/ ; zip -r ../outbound-rules-$ver.xpi .)"
+    "build-base": "npm run rollup && mkdir -p plugin && cp build/background.js logo.png LICENSE AUTHORS README.md plugin/",
+    "build-chrome": "npm run build-base && cp manifest-chrome.json plugin/manifest.json",
+    "build-firefox": "npm run build-base && cp manifest-firefox.json plugin/manifest.json",
+    "release-chrome": "npm run build-chrome && (cd plugin/ ; ver=$(jq -r .version < manifest.json) && zip -r ../outbound-rules-$ver.crx .)",
+    "release-firefox": "npm run build-firefox && (cd plugin/ ; ver=$(jq -r .version < manifest.json) && zip -r ../outbound-rules-$ver.xpi .)",
+    "unit-tests-bare": "jest",
+    "compile-integration-tests": "tsc --outDir build/integration-tests -m commonjs -t ES2015 src/integration-tests/ts/*.ts && cp src/integration-tests/resources/* build/integration-tests",
+    "integration-tests-bare": "node build/integration-tests/all.js",
+    "integration-tests": "npm run compile-integration-tests && npm run release-chrome && npm run integration-tests-bare",
+    "test": "npm run compile && npm run unit-tests-bare && npm run integration-tests"
   },
   "repository": {
     "type": "git",
@@ -19,6 +26,9 @@
   },
   "homepage": "https://github.com/hraban/chrome-outbound-rules",
   "devDependencies": {
+    "@types/node": "0.0.2",
+    "babel-preset-es2015": "=6.18.0",
+    "selenium-webdriver": "=3.0.1",
     "jest-cli": "=17.0.3",
     "rollup": "=0.36.4",
     "typescript": "=2.1.4"
