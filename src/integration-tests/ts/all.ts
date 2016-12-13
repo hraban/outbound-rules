@@ -35,6 +35,7 @@ import * as chrome from 'selenium-webdriver/chrome';
 import {server} from './server';
 import {test as testImg} from './test-img';
 import {test as testScript} from './test-script';
+import {test as testXhrGet} from './test-xhr-get';
 
 const chromeExtensionPath = "outbound-rules-0.0.1.crx";
 
@@ -49,6 +50,7 @@ interface Tester {
 const tests: Tester[] = [
     testImg,
     testScript,
+    testXhrGet,
 ]
 
 function all(): Promise<void> {
