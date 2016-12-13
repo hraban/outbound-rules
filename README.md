@@ -92,29 +92,48 @@ Install the necessary dependencies:
 $ npm install
 ```
 
-Run all tests:
+Build the WebExtension plugin for a browser, unpackaged, in the `plugin`
+directory:
+
+```sh
+$ npm run build-chrome   # or
+$ npm run build-firefox
+```
+
+You can load the plugin from Chrome by visiting
+[chrome://extensions](chrome://extensions), enabling "developer mode" and
+clicking "load unpackaged extension". Load the `plugin` directory.
+
+For Firefox, visit [about:debugging](about:debugging), click Load Temporary
+Add-on, and select any file in the `plugin` directory.
+
+To create releaseable plugin files:
+
+```sh
+$ npm run release-chrome
+$ npm run release-firefox
+```
+
+### Testing
+
+Full test suite (requires selenium and Chrome installed):
 
 ```sh
 $ npm test
 ```
 
-Build the WebExtension plugin:
+Full test suite in Docker:
 
 ```sh
-$ npm run build
+$ docker build -t outboundrules-test .
+$ docker run --rm outboundrules-test
 ```
 
-You can load the plugin from Chrome by visiting
-[chrome://extensions](chrome://extensions), enabling "developer mode" and
-clicking "load unpackaged extension".
-
-For Firefox, visit [about:debugging](about:debugging), click Load Temporary
-Add-on, and select any file in the plugin's root directory.
-
-To create a releaseable plugin file:
+Only the unit tests or integration tests:
 
 ```sh
-$ npm run release
+$ npm run unit-tests-bare
+$ npm run integration-tests
 ```
 
 ## Source, license and authors
