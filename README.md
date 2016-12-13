@@ -132,7 +132,7 @@ $ docker run --rm outboundrules-test
 Only the unit tests or integration tests:
 
 ```sh
-$ npm run unit-tests-bare
+$ npm run compile && npm run unit-tests-bare
 $ npm run integration-tests
 ```
 
