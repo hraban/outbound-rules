@@ -1,0 +1,67 @@
+<!DOCTYPE "html">
+<html>
+
+<head>
+<title>Testing AJAX GET</title>
+</head>
+
+<body>
+
+<p id=output hidden></p>
+<script>
+var out = document.getElementById('output');
+function loadOK() {
+  out.textContent = 'FAILURE';
+  out.hidden = false;
+}
+function loadERR() {
+  out.textContent = 'SUCCESS';
+  out.hidden = false;
+}
+</script>
+
+<p>You shouldn't see any JSON here: <span id=json></span>
+  
+<script>
+
+
+function makeRequest(url) {
+  return new Promise(function (ok, bad) {
+    const xhr = new XMLHttpRequest();
+
+    if (!xhr) {
+      const msg = 'cannot create XMLHttpRequest instance'; 
+      console.error(msg);
+      bad(msg);
+    }
+    xhr.onreadystatechange = function() {   
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          ok(xhr.response);
+        } else {
+          bad('There was a problem with the request.');
+        }
+      }
+    };
+    xhr.open('GET', url);
+    xhr.send();
+  });
+}
+
+makeRequest('foo-is-bar.json').then(function (json) {
+  console.log("Got data: " + json);
+  document.getElementById('json').textContent = json;
+  const data = JSON.parse(json);
+  if (data.foo === "bar") {
+    return Promise.resolve();
+  }
+  const msg = "xhr-get.html: Expected foo=bar, got: " + json;
+  console.error(msg);
+  return Promise.reject(msg);
+}).then(loadOK, loadERR);
+
+</script>
+
+</body>
+
+</html>
