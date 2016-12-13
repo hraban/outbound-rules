@@ -136,6 +136,11 @@ $ npm run unit-tests-bare
 $ npm run integration-tests
 ```
 
+The integration tests require Selenium and Chrome. They don't work in Firefox
+because there is no Selenium + WebExtension + Firefox support yet:
+
+https://github.com/seleniumhq/selenium/issues/1181
+
 ## Source, license and authors
 
 The license for this program can be found in the LICENSE file. The list of
