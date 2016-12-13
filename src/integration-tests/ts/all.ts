@@ -34,7 +34,7 @@ import * as chrome from 'selenium-webdriver/chrome';
 
 import {server} from './server';
 import {test as testImg} from './test-img';
-import {test as testScript} from './test-img';
+import {test as testScript} from './test-script';
 
 const chromeExtensionPath = "outbound-rules-0.0.1.crx";
 
