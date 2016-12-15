@@ -129,6 +129,15 @@ $ docker build -t outboundrules-test .
 $ docker run --rm outboundrules-test
 ```
 
+To rerun the tests in Docker after building the initial image from updated local
+source, without polluting the host:
+
+```sh
+$ docker rum --rm -v "$PWD"/src:/app/src outboundrules-test
+```
+
+(Useful if unit tests don't work locally, e.g. on Mac)
+
 Only the unit tests or integration tests:
 
 ```sh
