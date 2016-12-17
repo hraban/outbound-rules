@@ -99,7 +99,7 @@ function main_aux(driver): Promise<number> {
         }
         sDeny.close();
         sAllow.close();
-        return 1;
+        return numFails;
     });
 }
 
