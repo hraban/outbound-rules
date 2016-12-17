@@ -17,7 +17,7 @@ declare global {
 
     const backendConstructor = jest.fn<logic.IPluginBackend>(() => backend);
 
-    const plugin = new OutboundRulesPlugin(1, backendConstructor);
+    const plugin = new OutboundRulesPlugin(0, backendConstructor);
 
     // test mocking
     expect((<any>plugin).backend).toBe(backend);
