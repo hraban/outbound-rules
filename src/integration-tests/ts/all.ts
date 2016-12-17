@@ -33,9 +33,9 @@ import * as webdriver from 'selenium-webdriver';
 import * as chrome from 'selenium-webdriver/chrome';
 
 import {server} from './server';
-import {test as testImg} from './test-img';
-import {test as testScript} from './test-script';
-import {test as testXhrGet} from './test-xhr-get';
+import * as testImg from './test-img';
+import * as testScript from './test-script';
+import * as testXhrGet from './test-xhr-get';
 
 const chromeExtensionPath = "outbound-rules-0.0.1.crx";
 
@@ -44,38 +44,77 @@ function chromeOptions() {
 }
 
 interface Tester {
-    (driver: any, urlbase: string): Promise<void>
+    test: (driver: any, urlbase: string) => Promise<void>,
+    name: string,
 }
 
 const tests: Tester[] = [
     testImg,
     testScript,
     testXhrGet,
-]
+];
 
-function all(): Promise<void> {
-    const s = server();
-    s.listen(24119, "127.0.0.1");
-    const base = 'http://localhost:24119';
+function testAll(driver, base: string, expectTestSuccess: boolean): Promise<number> {
+    return tests.reduce((results, tester) => {
+        return results.then(numFails => {
+            return tester.test(driver, base).then(() => {
+                if (expectTestSuccess) {
+                    console.log(`${tester.name}: Blocked (expected)`)
+                    return numFails;
+                } else {
+                    console.error(`${tester.name}: Blocked, expected to be allowed`);
+                    return numFails + 1;
+                }
+            }, err => {
+                if (expectTestSuccess) {
+                    console.error(`${tester.name} (inverse): Allowed, expected to be blocked: ${err}`);
+                    return numFails + 1;
+                } else {
+                    console.log(`${tester.name} (inverse): Allowed (expected)`);
+                    return numFails;
+                }
+            });
+        });
+    }, Promise.resolve(0));
+}
+
+function main_aux(driver): Promise<number> {
+    const sDeny = server("DENY: ALL");
+    const sAllow = server();
+    sDeny.listen(24119, "127.0.0.1");
+    sAllow.listen(25119, "127.0.0.1");
+    // reduce all tests into a promise which always resolves, but
+    // with an integer value indicating how many tests actually failed.
+    // Can't use Promise.all because selenium drivers aren't thread-safe.
+    return testAll(driver, "http://127.0.0.1:24119", true)
+    .then(falseNegatives => {
+        return testAll(driver, "http://127.0.0.1:25119", false).then(falsePositives => {
+            return falseNegatives + falsePositives
+        });
+    }).then(numFails => {
+        if (numFails === 0) {
+            console.log("All integration tests ran succesfully");
+        } else {
+            console.error(`${numFails} Integration tests failed`);
+        }
+        sDeny.close();
+        sAllow.close();
+        return numFails;
+    });
+}
+
+function main(): void {
     console.log("Server is listening");
     const driver = new webdriver.Builder()
         .forBrowser('chrome')
         .setChromeOptions(chromeOptions())
         .build();
-
-    const running = tests.map(f => f(driver, base));
-    return Promise.all(running).then(() => {
-        console.log("All tests completed successfully.");
-        return 0;
-    }, (err) => {
-        console.error("Integration tests failed:", err);
-        return 1;
-    }).then((code: number) => {
-        s.close();
+    
+    main_aux(driver).then((code: number) => {
         driver.quit().then(() => {
             process.exit(code);
         });
     });
 }
 
-all();
+main();

@@ -19,7 +19,8 @@ set -eu -o pipefail
 # Launch xvfb and a selenium server. We don't actually use the latter, but the
 # xvfb launching is some voodoo that I'd rather not get too involved with.
 /opt/bin/entry_point.sh &
-sleep 3
+# No need to wait, npm test starts with unit tests anyway.
+#sleep 3
 
 # Run the tests
 npm test

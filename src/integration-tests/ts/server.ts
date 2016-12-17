@@ -25,7 +25,7 @@ function contentType(ustr: string): string {
 /**
  * simple HTTP server with Outbound-Rules: DENY: ALL.
  */
-export function server() {
+export function server(outboundRules?: string) {
   return http.createServer((request, response) => {
     // wow, __dirname. Please take note, EVERY OTHER LANGUAGE EVER.
     // request.url is normalised.
@@ -39,7 +39,9 @@ export function server() {
 
       const headers = {
         "content-type": contentType(request.url),
-        "outbound-rules": "DENY: ALL",
+      }
+      if (outboundRules !== undefined) {
+        headers["outbound-rules"] = outboundRules;
       }
       response.writeHead(200, headers);
       response.end(content);

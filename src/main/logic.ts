@@ -22,7 +22,7 @@ interface Rule extends ParsedRule {
     matcher: PatternMatcher
 }
 
-function matchDot(pattern: string, url: string) {
+function matchDot(pattern: string, url: string): boolean {
     const host = getHost(url).toLowerCase();
     if (pattern.length === host.length + 1) {
         // same domain, remove the dot
@@ -60,6 +60,7 @@ export function matcher(pattern: string): PatternMatcher {
 function getHost(url: string): string {
     const a = document.createElement('a');
     a.href = url;
+    // TODO: port?
     return a.hostname;
 }
 
@@ -83,50 +84,6 @@ export function parse(outheader: string): ParsedRule[] {
     return outheader.split(',').map(trim).filter(Boolean).map(parseOne);
 }
 
-function getOutboundHeader(headers: chrome.webRequest.HttpHeader[]): string {
-    for (let header of headers) {
-        switch (header.name.toLowerCase()) {
-            case "outbound-rules":
-                return header.value;
-        }
-    }
-}
-
-function getOriginHeader(headers: chrome.webRequest.HttpHeader[]): string {
-    for (let header of headers) {
-        switch (header.name.toLowerCase()) {
-            case "origin":
-            case "referer":
-            case "referrer":
-                return header.value;
-        }
-    }
-}
-
-declare global {
-    module chrome.webRequest {
-        export interface WebRequestHeadersDetails {
-            // Non-standard property only supported by Firefox
-            originUrl?: string;
-        }
-    }
-}
-
-function getOrigin(details: chrome.webRequest.WebRequestHeadersDetails): string {
-    // Firefox provides details.originUrl, which is exactly what we need.
-    if (details.originUrl !== undefined) {
-        return details.originUrl;
-    }
-    // Use the headers to get the origin because tab.get is async
-    // BUG: Doesn't work for https:// -> http:// connections
-    const headers = details.requestHeaders;
-    if (headers === undefined) {
-        console.error("onBeforeSendHeaders: No request headers available");
-        return;
-    }
-    return getOriginHeader(headers);
-}
-
 // Attach matcher functions to each rule
 function ruleMatchers(rules: Rule[], originHost: string) {
     rules.forEach(function (rule) {
@@ -139,35 +96,31 @@ function ruleMatchers(rules: Rule[], originHost: string) {
     });
 }
 
-// Stateful OutboundRules plugin manager which tracks incoming requests
-// with Outbound-Rules headers and tests outgoing requests against those
-// rules. Only the on* methods are actually WebExtension specific.
-export class OutboundRulesPlugin {
-    // This dance is necessary because onBeforeSendHeaders doesn't provide
-    // access to the response context of the page that caused this request.
+export interface IPluginBackend {
+    initRequest(tabId: number, url: string, outboundRules: string);
+    shouldAccept(tabId: number, url: string, origin: string): boolean;
+}
+
+// putting the Java back in JavaScript
+export interface IPluginBackendFactory {
+    new(debug: number): IPluginBackend
+}
+
+// Manage state for the plugin between responses (containing outbound rules)
+// and requests which come from those responses.
+// This dance is necessary because onBeforeSendHeaders doesn't provide
+// access to the response context of the page that caused this request.
+//
+// This class is "plugin system" agnostic. Its API reflects the implementation,
+// not the expected API.
+export class PluginBackend implements IPluginBackend {
     private cache: {[id: string]: Rule[]} = {};
-    // Keep track of fresh requests. These are "initializing" requests: e.g.
-    // when you enter a URL on the address bar and press enter: the "fresh"
-    // request will be the one actually fetching that URL. This is marked by the
-    // "beforeSendHeaders" handlers, but actually used by the "receivedHeaders"
-    // handler to extract the Outbound-Rules header.
-    private fresh: {[requestId: string]: boolean} = {};
 
     // verbosity:
     //   - 0: silent
     //   - 1: info
     //   - 2: debug
     constructor(private debug: number) {}
-
-    initRequest(tabId: number, url: string, outboundRules: string) {
-        const originHost = getHost(url).toLowerCase();
-
-        const rules = <Rule[]>parse(outboundRules);
-        ruleMatchers(rules, originHost);
-
-        // TODO: indexed by tab id --- how does that play with frames?
-        this.cache[tabId] = rules;
-    }
 
     // The rule that matches this outgoing request, if any.
     //
@@ -185,6 +138,23 @@ export class OutboundRulesPlugin {
         // TODO: schemas. Currently still vulnerable to downgrading https to http.
 
         return outbound.find(rule => rule.matcher(url)) || null;
+    }
+
+    initRequest(tabId: number, url: string, outboundRules?: string) {
+        const originHost = getHost(url).toLowerCase();
+
+        // No rules for this session.
+        if (outboundRules === undefined) {
+            // Clear preexisting rules from previous session, if any.
+            delete this.cache[tabId];
+            return;
+        }
+
+        const rules = <Rule[]>parse(outboundRules);
+        ruleMatchers(rules, originHost);
+
+        // TODO: indexed by tab id --- how does that play with frames?
+        this.cache[tabId] = rules;
     }
 
     // The origin parameter is only required for logging. (TODO: refactor)
@@ -206,58 +176,5 @@ export class OutboundRulesPlugin {
         }
 
         return accept;
-    }
-
-    // WebExtension handler called when headers are received but not yet
-    // processed by the application.
-    onHeadersReceived(details: chrome.webRequest.WebResponseHeadersDetails) {
-        var headers = details.responseHeaders;
-        if (headers === undefined) {
-            console.error("onHeadersReceived: No response headers available");
-            return;
-        }
-
-        if (this.debug >= 2) {        
-            console.log("onHeadersReceived():", details);
-        }
-
-        if (!(details.requestId in this.fresh)) {
-            // This is a subrequest of a tab (e.g. a loaded resource). Don't
-            // use this to set the outbound rules.
-            return;
-        }
-        delete this.fresh[details.requestId];
-
-        const outboundRules = getOutboundHeader(headers);
-        if (outboundRules === undefined) {
-            return;
-        }
-
-        if (this.debug) {
-            console.log(`Initializing rules for tab #${details.tabId} ${details.url}:`, outboundRules);
-        }
-
-        this.initRequest(details.tabId, details.url, outboundRules);
-    }
-
-    // WebExtension handler called when a request is *about to get made*
-    // but has not actually been sent yet. Last chance to cancel it.
-    onBeforeSendHeaders(details: chrome.webRequest.WebRequestHeadersDetails) {
-        const origin = getOrigin(details);
-
-        if (this.debug >= 2) {
-            console.log("onBeforeSendHeaders():", details, " -- origin:", origin);
-        }
-
-        if (origin === undefined || origin === details.url) {
-            this.fresh[details.requestId] = true;
-            return;
-        }
-
-        const accept = this.shouldAccept(details.tabId, details.url, origin);
-
-        // TODO: Don't use {cancel: ..} because a link visit will automatically reload (on Chrome)
-        // https://github.com/hraban/outbound-rules/issues/1
-        return { cancel: !accept };
     }
 }
