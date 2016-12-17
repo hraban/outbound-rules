@@ -1,11 +1,12 @@
-## Outbound-Rules WebExtension for Chrome and Firefox
+## Outbound-Rules: Turn XSS protection on its head
 
 This is the Firefox and Chrome implementation of the Outbound-Rules protocol.
+
 The Outbound-Rules protocol turns XSS protection upside down: instead of
-preventing XSS from happening, instead it limits the possible damage XSS can do.
-This is achieved by whitelisting the "known good external servers" a page can
-make requests to. Any Javascript, HTML, or other resource (including by XSS) can
-only contact these servers.
+preventing XSS from happening, instead it limits the possible damage of XSS.
+This is achieved by whitelisting the "known good external servers". Any
+Javascript, HTML, or other resource (including by XSS) can only contact these
+servers.
 
 To protect a page against XSS using Outbound-Rules, the server must send a
 `Outbound-Rules` header with a list of rules. E.g.:
