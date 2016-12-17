@@ -31,9 +31,17 @@ export function server(outboundRules?: string) {
     // request.url is normalised.
     fs.readFile(__dirname + request.url, (err, content) => {
       if (err) {
-        console.error(err);
-        response.writeHead(500);
-        response.end("Something went wrong: " + err);
+        switch (err.code) {
+        case 'ENOENT':
+          response.writeHead(404);
+          response.end("404 Not found");
+          break;
+        default:
+          console.error(err);
+          response.writeHead(500);
+          response.end("Something went wrong: " + err);
+          break;
+        }
         return;
       }
 
