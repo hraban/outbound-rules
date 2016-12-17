@@ -211,8 +211,9 @@ The integration tests require Selenium and Chrome. They're located in
   files, ...) in `src/integration-tests/resources`,
 * two web servers, one with `Outbound-Rules: Deny: ALL`, another without any
   rules, serving the static integration test resources,
-* a separate test script per test (`src/integration-tests/test-*.ts`), accessing
-  those test resources through Selenium (using Chrome with the plugin loaded).
+* a separate test script per test (`src/integration-tests/ts/test-*.ts`),
+  accessing those test resources through Selenium (using Chrome with the plugin
+  loaded).
 
 The independent tests try to connect to an external resource and resolve as
 either LOADED or BLOCKED.
