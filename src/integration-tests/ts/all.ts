@@ -37,7 +37,7 @@ import * as testImg from './test-img';
 import * as testScript from './test-script';
 import * as testXhrGet from './test-xhr-get';
 
-const chromeExtensionPath = "outbound-rules-0.0.2.crx";
+const chromeExtensionPath = "outbound-rules-0.0.3.crx";
 
 function chromeOptions() {
     return new chrome.Options().addExtensions(chromeExtensionPath);
