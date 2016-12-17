@@ -10,6 +10,10 @@ Outbound-Rules: Accept: SELF code.jquery.com, Deny: ALL
 will only allow requests to your own hostname and to code.jquery.com. Anything
 else is forbidden.
 
+Firefox: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
+
+Chrome: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
+
 ## Details
 
 This system protects you against an attack where some malicious javascript finds
