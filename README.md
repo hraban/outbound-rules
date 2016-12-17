@@ -197,10 +197,11 @@ tests. Useful if unit tests don't work locally, e.g. on Mac.
 #### Unit tests
 
 The unit tests are written in jest (https://facebook.github.io/jest/). They're
-located in `src/ts/__tests__`, which is the standard location for tests.
+located in `src/ts/__tests__`, which is the standard location for jest tests.
 
 For some reason they don't work on Mac. Which is fine because it's just as easy
-to use docker to test them (see instructions above).
+to use docker to test them (see instructions above). I don't care enough to
+figure out what the problem is.
 
 #### Integration tests
 
