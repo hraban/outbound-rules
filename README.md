@@ -21,6 +21,25 @@ Firefox: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
 
 Chrome: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
 
+## Contribute
+
+Contributions are very welcome!
+
+If you can code:
+
+* **Add (integration) test cases.** Especially failing ones. :)
+* Fix bugs (see the issue tracker).
+* Help me with the UI (halp)
+
+See below for more information on how the tests work.
+
+If you can't code:
+
+* **Install the plugin and help me find bugs.** Use the Github issue tracker to
+  report them.
+* Help me with documentation.
+* Tell me about your use case.
+
 ## Details
 
 This system protects you against an attack where some malicious javascript finds
