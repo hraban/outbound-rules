@@ -138,7 +138,7 @@ $ npm run release-chrome
 $ npm run release-firefox
 ```
 
-### Testing
+## Testing
 
 Full test suite (requires selenium and Chrome installed):
 
@@ -153,11 +153,6 @@ $ npm run compile && npm run unit-tests-bare
 $ npm run integration-tests
 ```
 
-The integration tests require Selenium and Chrome. They don't work in Firefox
-because there is no Selenium + WebExtension + Firefox support yet:
-
-https://github.com/seleniumhq/selenium/issues/1181
-
 ### Testing with Docker
 
 Full test suite in Docker:
@@ -167,19 +162,60 @@ $ docker build -t outboundrules-test .
 $ docker run --rm outboundrules-test
 ```
 
-To rerun the tests in Docker after building the initial image from updated local
-source, without polluting the host:
+To rerun the tests in Docker after building the initial image, without
+rebuilding the entire docker image:
 
 ```sh
 $ docker rum --rm -v "$PWD"/src:/app/src outboundrules-test
 ```
 
-(Useful if unit tests don't work locally, e.g. on Mac)
+This automatically takes your latest changes in `src/`, rebuilds it and runs all
+tests. Useful if unit tests don't work locally, e.g. on Mac.
+
+### Details on testing
+
+#### Unit tests
+
+The unit tests are written in jest (https://facebook.github.io/jest/). They're
+located in `src/ts/__tests__`, which is the standard location for tests.
+
+For some reason they don't work on Mac. Which is fine because it's just as easy
+to use docker to test them (see instructions above).
+
+#### Integration tests
+
+The integration tests require Selenium and Chrome. They're located in
+`src/integration-tests`. There are three parts to it:
+
+* a collection of HTML pages and associated resources (images, javascript
+  files, ...) in `src/integration-tests/resources`,
+* two web servers, one with `Outbound-Rules: Deny: ALL`, another without any
+  rules, serving the static integration test resources,
+* a separate test script per test (`src/integration-tests/test-*.ts`), accessing
+  those test resources through Selenium (using Chrome with the plugin loaded).
+
+The independent tests try to connect to an external resource and resolve as
+either LOADED or BLOCKED.
+
+When running the integration tests, Selenium is used to load the local Chrome
+build of the plugin. Each test is then run sequentially. Tests are run twice:
+once against the webserver with a `Deny: ALL` rule, and once against the server
+without any rules. On the first run, all tests are expected to resolve as
+BLOCKED. On the second, they're expected to resolve LOADED.
+
+The integration tests don't work in Firefox because there is no Selenium +
+WebExtension + Firefox support yet:
+
+https://github.com/seleniumhq/selenium/issues/1181
 
 ## Source, license and authors
 
-The license for this program can be found in the LICENSE file. The list of
+This program is licensed under the AGPLv3 (see the LICENSE file). The list of
 authors is kept in the AUTHORS file.
+
+The original Proof-of-Concept for this extension was developed as part of a
+hackathon for Ravelin (https://ravelin.com). They're based in London, and always
+hiring! https://ravelin.com/jobs
 
 The full, buildable source code can be found on the project's GitHub page:
 https://github.com/hraban/outbound-rules.
