@@ -1,13 +1,7 @@
 import * as logic from '../logic';
 import {OutboundRulesPlugin} from '../webextension-wrapper';
 
-declare global {
-  module jest {
-    function isMockFunction(x: any): boolean;
-  }
-}
-
-  describe('plugin wrapper', () => {
+describe('plugin wrapper', () => {
 
   it('initializes the backend', () => {
     const backend = {
