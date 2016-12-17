@@ -88,10 +88,6 @@ export class OutboundRulesPlugin {
         delete this.fresh[details.requestId];
 
         const outboundRules = getOutboundHeader(headers);
-        if (outboundRules === undefined) {
-            return;
-        }
-
         if (this.debug) {
             console.log(`Initializing rules for tab #${details.tabId} ${details.url}:`, outboundRules);
         }

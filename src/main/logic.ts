@@ -140,8 +140,15 @@ export class PluginBackend implements IPluginBackend {
         return outbound.find(rule => rule.matcher(url)) || null;
     }
 
-    initRequest(tabId: number, url: string, outboundRules: string) {
+    initRequest(tabId: number, url: string, outboundRules?: string) {
         const originHost = getHost(url).toLowerCase();
+
+        // No rules for this session.
+        if (outboundRules === undefined) {
+            // Clear preexisting rules from previous session, if any.
+            delete this.cache[tabId];
+            return;
+        }
 
         const rules = <Rule[]>parse(outboundRules);
         ruleMatchers(rules, originHost);
