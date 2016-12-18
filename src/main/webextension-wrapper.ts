@@ -66,6 +66,14 @@ export class OutboundRulesPlugin {
         this.backend = new backendConstructor(debug);
     }
 
+    register(): void {
+        const filter = {
+            urls: ["<all_urls>"],
+        };
+        chrome.webRequest.onHeadersReceived.addListener(x => this.onHeadersReceived(x), filter, ["responseHeaders" /*,  "blocking"? would it be a race not to? */]);
+        chrome.webRequest.onBeforeSendHeaders.addListener(x => this.onBeforeSendHeaders(x), filter, ["blocking", "requestHeaders"]);
+    }
+
     // WebExtension handler called when headers are received but not yet
     // processed by the application.
     onHeadersReceived(details: chrome.webRequest.WebResponseHeadersDetails) {

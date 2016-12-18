@@ -8,10 +8,9 @@
 
 import {OutboundRulesPlugin} from './webextension-wrapper';
 
-var filter = {
-    urls: ["<all_urls>"],
-};
+function main() {
+    const plugin = new OutboundRulesPlugin(0);
+    plugin.register();
+}
 
-const plugin = new OutboundRulesPlugin(0);
-chrome.webRequest.onHeadersReceived.addListener(x => plugin.onHeadersReceived(x), filter, ["responseHeaders" /*,  "blocking"? would it be a race not to? */]);
-chrome.webRequest.onBeforeSendHeaders.addListener(x => plugin.onBeforeSendHeaders(x), filter, ["blocking", "requestHeaders"]);
+main();
