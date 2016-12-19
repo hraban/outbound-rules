@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "Outbound rules",
+  "name": "Outbound Rules",
   "short_name": "outbound-rules",
-  "description": "Protect against XSS by restricting access to outbound resources if a page defines a rule list",
+  "description": "Protect your company's Admin Dashboards from XSS",
   "version": "0.1alpha3",
   "version_name": "0.1 alpha 3",
 
