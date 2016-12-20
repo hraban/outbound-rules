@@ -18,7 +18,7 @@ support tickets, payments, addresses, etc. It's hosted on
 https://admin.foobarcorp.com/. They use a standard Angular plugin for
 authentication (ng-token-auth).
 
-![sample web interface login screen](https://s3-us-west-2.amazonaws.com/outboundrules-readme-files/foobarcorp-admin-login.png)
+![sample web interface login screen](https://s3-us-west-2.amazonaws.com/outboundrules-readme-files/foobarcorp-admin-login-small.png)
 
 Where do you have to look out for XSS? What if there is one bug, how big is the
 damage?
