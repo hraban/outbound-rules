@@ -150,9 +150,8 @@ the secret cookies anywhere. With **Outbound-Rules**, even if there is a XSS bug
 on your site, it's much less useful to attackers because they can't send the
 secret data back to themselves.
 
-Firefox: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
-
-Chrome: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
+* [Firefox Outbound-Rules plugin][firefox]
+* [Chrome Outbound-Rules plugin][chrome]
 
 ## Details
 
@@ -177,6 +176,46 @@ control both the browsers and the servers, e.g.: a company with an admin
 dashboard for their service (which is only accessible by employees). All
 employees can be asked to install the plugin, and the page can be configured to
 send the appropriate header.
+
+## How to use Outbound-Rules
+
+**Outbound-Rules** can be used with any server, and with Chrome and Firefox.
+
+1. Install the [Firefox][firefox] or [Chrome][chrome] plugin in your browser
+2. Set up your server to send the `Outbound-Rules: ` header.
+
+The content of the header depends on how your admin dashboard works. Make a list
+of all hosts you trust and want to connect to, *including regular links*.
+
+For example:
+
+* You link to Google search results: `.google.com`,
+* You use the official jQuery CDN: `code.jquery.com`,
+* You link to and use images from your own company site: `foobarcorp.com`,
+* Your dashboard uses an API server hosted at `api.foobarcorp.com`
+
+You trust everything from your own company, including subdomains, so you can
+combine the last two rules as: `.foobarcorp.com`. It is wise to always include
+`SELF`, since you probably trust the actual domain the site is hosted on. So:
+
+```
+Outbound-Rules: Accept: SELF .foobarcorp.com code.jquery.com .google.com, Deny: ALL`
+```
+
+Send this header with every HTML page from your server. For example, in PHP:
+
+```php
+<?php
+// make sure this is put at the very top of the page
+
+header('Outbound-Rules: Accept: SELF .foobarcorp.com code.jquery.com .google.com, Deny: ALL');
+
+// ... rest of the page
+
+```
+
+Congratulations, you now have an in-depth, extra layer of protection against
+XSS!
 
 ## Contribute
 
@@ -376,3 +415,6 @@ hiring! https://ravelin.com/jobs
 
 The full, buildable source code can be found on the project's GitHub page:
 https://github.com/hraban/outbound-rules.
+
+[firefox]: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
+[chrome]: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
