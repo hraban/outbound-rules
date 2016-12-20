@@ -7,6 +7,8 @@ of the top-3 security vulnerability in the world: XSS.
 This plugin, **Outbound-Rules**, will protect you, your employees and your
 customers.
 
+Available on [Firefox][firefox] and [Chrome][chrome].
+
 ## Introduction: What is XSS? An example.
 
 XSS is a dangerous security vulnerability. Not because it is complex, but
@@ -23,13 +25,24 @@ authentication (ng-token-auth).
 Where do you have to look out for XSS? What if there is one bug, how big is the
 damage?
 
-The possible XSS bugs are everywhere there is user data displayed. User e-mail,
-address, user tickets, profile pictures, payment info, anything. Any piece of
-text controlled by a user must be very carefully handled when displaying it in
-the dashboard. If you use Angular as intended, you "should be fine", but XSS
-will always be lurking in the shadows. One mistake, one misunderstood library
-API which you think escapes values for you but actually doesn't, one misstep:
-XSS.
+XSS attacks are like spy drones: they go behind enemy lines, take photos of
+secret stuff they're not allowed to see, and send that back to base. A
+successful XSS attack on this dashboard has two steps:
+
+1. An attacker has to get the browser to execute some JavaScript, thinking that
+   the JavaScript actually came from "https://admin.foobarcorp.com/". That means
+   that the JavaScript will have access to private cookies and auth tokens from
+   the dashboard.
+2. The JavaScript then has to send that private data back to a server belonging
+   to the attacker. For example, through Ajax.
+
+Step #1 can occur: *everywhere user data displayed on the dashboard.* User
+e-mail, address, user tickets, profile pictures, payment info, anything.  Any
+piece of text controlled by a user must be very carefully handled when
+displaying it in the dashboard. If you use Angular as intended, you "should be
+fine", but XSS will always be lurking in the shadows. One mistake, one
+misunderstood library API which you think escapes values for you but actually
+doesn't, one misstep: XSS.
 
 Because the site is written in Angular, anyone can download the entire
 dashboard code, even without logging in. They won't have the actual user
@@ -72,27 +85,58 @@ here"; just logging in. As usual.
 practices." True! Just escape user input when displaying it. This is our current
 approach to protecting against XSS: just don't make any mistakes. Ever.
 
-Two problems with that:
+There are problems with that:
 
-1. This is hard. What is the DOM? what is escaping? why? Try explaining all the
-   semantic levels, which escaping makes sense, when, to somebody who started
-   programming by jumping into JS frameworks in 2016. It's easy to forget how
-   hard this all is, once you know it.
-2. Even assuming that someone knows exactly what XSS is and how to prevent it:
-   the problem is not that a *single* XSS bug is impossible to prevent. The
-   problem is that there are *so many possible XSS bugs*. **Every single piece
-   of user data displayed on your admin page, anywhere, is a possible XSS bug.**
-   Sooner or later, someone, somewhere, will make a mistake.
+First, this is hard. What is the DOM? what is escaping? why? Try explaining all
+the semantic levels, which escaping makes sense, when, to somebody who started
+programming by jumping into JS frameworks in 2016. It's easy to forget how hard
+this all is, once you know it.
 
+Second, even assuming that someone knows exactly what XSS is and how to prevent
+it: the problem is not that a *single* XSS bug is impossible to prevent. The
+problem is that there are *so many possible XSS bugs*. **Every single piece of
+user data displayed on your admin page, anywhere, is a possible XSS bug.**
+Sooner or later, someone, somewhere, will make a mistake.
+
+## How Current Solutions Protect Against XSS
+
+The example above explains that a successful XSS attack is like a spy drone in
+action, it has two steps:
+
+1. **See the secret:** Get the victim's browser to execute some JS, thinking
+   that the JS came from a trusted website. E.g. put evil JS in your e-mail:
+   when an admin visits their company's web dashboard, they execute the JS. The
+   browser thinks that JS came from the admin dashboard and gives it access to
+   the login cookie, auth tokens, ...
+2. **Send the secret back to home base:** send that private data back to the
+   attacker's server, e.g. through Ajax.
+
+After this, the attacker picks up the private data from the evil server and uses
+it to log in to the admin dashboard, himself.
+
+Currently, almost all XSS mitigation techniques focus on preventing step #1.
+Barely anyone focuses on step #2. Basically, once someone gets to execute
+untrusted JS on your site, we consider it "case closed, you're pwned." This is
+evident from XSS bug reports using `alert("pwnd!");` as proof of the XSS bug. As
+if showing an alert box to a victim would help an attacker.
+
+While protecting yourself from #1 is a good idea, it's not the only thing you
+can do.
 
 ## How The "Outbound-Rules" Protocol Protects Against XSS
 
-The Outbound-Rules protocol turns XSS protection upside down: instead of
-preventing XSS from happening, it limits the possible damage of XSS.  This is
-achieved by whitelisting the "known good external servers". Any Javascript,
-HTML, or other resource (including by XSS) can only contact these servers.
+The **Outbound-Rules** protocol protects you from step #2 in XSS: it prevents
+evil JavaScript from sending any private data back to the attacker.
 
-To protect a page against XSS using Outbound-Rules, the server must send a
+This limits the possible damage of XSS, in the unfortunate case that your
+regular defenses against #1 fail: even though their evil JavaScript knows what
+the secret login cookie is, it can't communicate it back. Like a spy drone that
+can't send its images back to base.
+
+It is done by whitelisting the "known good external servers". Any Javascript or
+HTML on your page can only contact these servers.
+
+To protect a page against XSS using **Outbound-Rules**, the server must send a
 `Outbound-Rules` header with a list of rules. E.g.:
 
 ```
@@ -107,10 +151,6 @@ from being loaded. However, it would have prevented the javascript from sending
 the secret cookies anywhere. With **Outbound-Rules**, even if there is a XSS bug
 on your site, it's much less useful to attackers because they can't send the
 secret data back to themselves.
-
-Firefox: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
-
-Chrome: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
 
 ## Details
 
@@ -135,6 +175,46 @@ control both the browsers and the servers, e.g.: a company with an admin
 dashboard for their service (which is only accessible by employees). All
 employees can be asked to install the plugin, and the page can be configured to
 send the appropriate header.
+
+## How to use Outbound-Rules
+
+**Outbound-Rules** can be used with any server, and with Chrome and Firefox.
+
+1. Install the [Firefox][firefox] or [Chrome][chrome] plugin in your browser
+2. Set up your server to send the `Outbound-Rules: ` header.
+
+The content of the header depends on how your admin dashboard works. Make a list
+of all hosts you trust and want to connect to, *including regular links*.
+
+For example:
+
+* You link to Google search results: `.google.com`,
+* You use the official jQuery CDN: `code.jquery.com`,
+* You link to and use images from your own company site: `foobarcorp.com`,
+* Your dashboard uses an API server hosted at `api.foobarcorp.com`
+
+You trust everything from your own company, including subdomains, so you can
+combine the last two rules as: `.foobarcorp.com`. It is wise to always include
+`SELF`, since you probably trust the actual domain the site is hosted on. So:
+
+```
+Outbound-Rules: Accept: SELF .foobarcorp.com code.jquery.com .google.com, Deny: ALL`
+```
+
+Send this header with every HTML page from your server. For example, in PHP:
+
+```php
+<?php
+// make sure this is put at the very top of the page
+
+header('Outbound-Rules: Accept: SELF .foobarcorp.com code.jquery.com .google.com, Deny: ALL');
+
+// ... rest of the page
+
+```
+
+Congratulations, you now have an in-depth, extra layer of protection against
+XSS!
 
 ## Contribute
 
@@ -334,3 +414,6 @@ hiring! https://ravelin.com/jobs
 
 The full, buildable source code can be found on the project's GitHub page:
 https://github.com/hraban/outbound-rules.
+
+[firefox]: https://addons.mozilla.org/en-US/firefox/addon/outbound-rules/
+[chrome]: https://chrome.google.com/webstore/detail/outbound-rules/jpkboijeielcdcjhjfokoielfjchipeo
