@@ -180,7 +180,9 @@ send the appropriate header.
 
 **Outbound-Rules** can be used with any server, and with Chrome and Firefox.
 
-1. Install the [Firefox][firefox] or [Chrome][chrome] plugin in your browser
+1. Install the [Firefox][firefox] or [Chrome][chrome] plugin in the browser of
+   *everyone who visits the dashboard*. For example, all employees of your
+   company.
 2. Set up your server to send the `Outbound-Rules: ` header.
 
 The content of the header depends on how your admin dashboard works. Make a list
