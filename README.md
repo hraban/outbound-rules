@@ -7,6 +7,8 @@ of the top-3 security vulnerability in the world: XSS.
 This plugin, **Outbound-Rules**, will protect you, your employees and your
 customers.
 
+Available on [Firefox][firefox] and [Chrome][chrome].
+
 ## Introduction: What is XSS? An example.
 
 XSS is a dangerous security vulnerability. Not because it is complex, but
@@ -149,9 +151,6 @@ from being loaded. However, it would have prevented the javascript from sending
 the secret cookies anywhere. With **Outbound-Rules**, even if there is a XSS bug
 on your site, it's much less useful to attackers because they can't send the
 secret data back to themselves.
-
-* [Firefox Outbound-Rules plugin][firefox]
-* [Chrome Outbound-Rules plugin][chrome]
 
 ## Details
 
