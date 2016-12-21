@@ -1,3 +1,10 @@
+*Turns out this already exists!
+[Content-Security-Policy][https://content-security-policy.com/]. I'm leaving
+this here for future reference, but CSP is everything I wanted this to be, and
+more. Great news :) No need to continue this project.*
+
+
+
 ## Outbound-Rules: Protect your admin dashboards from XSS
 
 Does your company have an "admin dashboard"? A website where you manage your
