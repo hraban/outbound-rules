@@ -1,5 +1,5 @@
 *Turns out this already exists!
-[Content-Security-Policy][https://content-security-policy.com/]. I'm leaving
+[Content-Security-Policy](https://content-security-policy.com/). I'm leaving
 this here for future reference, but CSP is everything I wanted this to be, and
 more. Great news :) No need to continue this project.*
 
